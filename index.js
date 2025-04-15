@@ -63,7 +63,13 @@ app.get('/screenshot/:id', async (req, res) => {
         res.send('Screenshot telah diambil dan dikirim ke owner!');
         
         // Hapus file screenshot setelah 10 detik
-        setTimeout(() => fs.unlinkSync(screenshotFilePath), 10000);
+        setTimeout(() => {
+          try {
+            fs.unlinkSync(screenshotFilePath);
+          } catch (unlinkErr) {
+            console.error(`[${clientId}] Gagal menghapus file screenshot:`, unlinkErr);
+          }
+        }, 10000);
       })
       .catch(err => {
         console.error(`[${clientId}] Gagal kirim screenshot ke owner:`, err.message);
@@ -87,15 +93,18 @@ async function takeScreenshot(url, clientId) {
   try {
     console.log(`[${clientId}] Mengambil screenshot dari URL: ${url}`);
     const browser = await puppeteer.launch({
-      headless: false, // Coba matikan headless mode untuk debugging
+      headless: true, // Aktifkan kembali headless untuk produksi
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
         '--no-zygote',
-        '--disable-gpu'
-      ]
+        '--disable-gpu',
+        // '--verbose', // Tambahkan logging untuk debugging
+        // '--show-context' // Mungkin membantu di beberapa lingkungan
+      ],
+      // executablePath: '/usr/bin/google-chrome' // Ganti dengan path yang benar jika diketahui
     });
 
     const page = await browser.newPage();
@@ -108,6 +117,7 @@ async function takeScreenshot(url, clientId) {
     return filePath;
   } catch (err) {
     console.error(`[${clientId}] Gagal saat mengambil screenshot:`, err);
+    console.error(err.stack); // Cetak stack trace untuk debugging
     return null;
   }
 }
