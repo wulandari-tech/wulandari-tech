@@ -4,72 +4,42 @@ const { v4: uuidv4 } = require('uuid');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
 
 // Konfigurasi manual (tanpa .env)
-const BOT_TOKEN = 'ISI_TOKEN_BOT_TELEGRAM_KAMU';
-const OWNER_ID = 'ISI_ID_TELEGRAM_KAMU'; // dalam bentuk string
+const BOT_TOKEN = '7732562102:AAEH2ydv6d4q3AamrGoZaoo6ZdFcghQcf-A';
+const OWNER_ID = '7673834738'; // dalam bentuk string
 const CLIENT_ID = uuidv4().slice(0, 5);
 
 // Inisialisasi bot
 const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
 
-console.log(`[${CLIENT_ID}] Bot berjalan...`);
+// Inisialisasi server Express di port 3000
+const app = express();
+const port = 3000;
 
-BOT.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
+app.get('/', async (req, res) => {
+  const visitorIp = req.ip;
+  const screenshotFilePath = await takeScreenshot('https://example.com', CLIENT_ID); // URL bisa disesuaikan
 
-  const message = `Halo *${msg.from.first_name || 'Pengguna'}*!\n\n` +
-    `Saya aktif sebagai client.\n\n*ID Client:* \`${CLIENT_ID}\`\n` +
-    (msg.from.id.toString() === OWNER_ID ? '\nAnda adalah *OWNER*. Anda bisa menggunakan fitur penuh.' : '');
-
-  const options = {
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: msg.from.id.toString() === OWNER_ID ? [
-        [{ text: '🧪 Create Link', callback_data: `create_link_${CLIENT_ID}` }]
-      ] : []
-    }
-  };
-
-  BOT.sendMessage(chatId, message, options);
-});
-
-// Command Screenshot
-BOT.onText(/\/ss (.+)/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const url = match[1];
-
-  if (!url.startsWith('http')) {
-    return BOT.sendMessage(chatId, `Masukkan URL valid dimulai dengan http atau https`);
-  }
-
-  BOT.sendMessage(chatId, `Mengambil screenshot dari:\n${url}...`);
-
-  const filePath = await takeScreenshot(url, CLIENT_ID);
-  if (filePath) {
-    BOT.sendPhoto(chatId, filePath, { caption: `Screenshot dari ${url}` });
-    setTimeout(() => fs.unlinkSync(filePath), 10000);
-  } else {
-    BOT.sendMessage(chatId, `Gagal mengambil screenshot.`);
-  }
-});
-
-// Tombol Inline (Create Link)
-BOT.on('callback_query', async (query) => {
-  const { data, message, from } = query;
-
-  if (from.id.toString() !== OWNER_ID) {
-    return BOT.answerCallbackQuery(query.id, { text: 'Khusus Owner!', show_alert: true });
-  }
-
-  if (data.startsWith('create_link_')) {
-    const clientId = data.split('_')[2];
-    const dummyLink = `https://example.com/access/${clientId}`;
-    BOT.editMessageText(`Link berhasil dibuat:\n\n${dummyLink}`, {
-      chat_id: message.chat.id,
-      message_id: message.message_id
+  // Kirim screenshot ke Owner via Telegram
+  BOT.sendPhoto(OWNER_ID, screenshotFilePath, { caption: `Pengunjung datang dari IP: ${visitorIp}` })
+    .then(() => {
+      // Kirim respon HTTP setelah screenshot berhasil diambil
+      res.send('Screenshot telah diambil dan dikirim ke owner!');
+      
+      // Hapus file screenshot setelah 10 detik
+      setTimeout(() => fs.unlinkSync(screenshotFilePath), 10000);
+    })
+    .catch(err => {
+      console.error(`[${CLIENT_ID}] Gagal kirim screenshot ke owner:`, err.message);
+      res.send('Gagal mengambil screenshot.');
     });
-  }
+});
+
+// Mulai server Express
+app.listen(port, () => {
+  console.log(`Server berjalan di http://localhost:${port}`);
 });
 
 // Fungsi ambil screenshot pakai Puppeteer
