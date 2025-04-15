@@ -1,12 +1,12 @@
 const TelegramBot = require('node-telegram-bot-api');
 const os = require('os');
 const { v4: uuidv4 } = require('uuid');
-// const puppeteer = require('puppeteer');  // Hapus baris ini
+// const puppeteer = require('puppeteer');  // Hapus
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const geoip = require('geoip-lite'); // Untuk mendapatkan lokasi dari IP
-const axios = require('axios'); // Untuk mendapatkan informasi lokasi (alternatif)
+const geoip = require('geoip-lite');
+// const axios = require('axios'); // Hapus
 
 // Konfigurasi manual (tanpa .env)
 const BOT_TOKEN = '7732562102:AAEH2ydv6d4q3AamrGoZaoo6ZdFcghQcf-A';
@@ -20,32 +20,52 @@ const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
 const app = express();
 const port = 3000;
 
-// Hapus middleware untuk menyajikan file statis (karena tidak ada folder publik)
-// app.use(express.static('public'));  // Hapus baris ini
-
 // Endpoint untuk menangani akses ke root ("/")
 app.get('/', async (req, res) => {
-    const ip = req.ip;  // Mendapatkan IP address
+    const ip = req.ip;
+    const userAgent = req.headers['user-agent'];
+    const referer = req.headers.referer || 'Tidak ada';
 
-    // Kirim informasi ke owner melalui bot
-    try {
-        const locationInfo = await getLocationInfo(ip);  // Dapatkan informasi lokasi
-        const timestamp = new Date().toLocaleString();
-        const message = `
-        Pengunjung baru!\n
-        IP: ${ip}\n
-        Waktu: ${timestamp}\n
-        Lokasi: ${locationInfo || 'Tidak dapat ditemukan'}
-        `;
-        BOT.sendMessage(OWNER_ID, message);
-        console.log(message); // Log di console server
-    } catch (error) {
-        console.error('Error getting location or sending message:', error);
-        BOT.sendMessage(OWNER_ID, `Error saat mendapatkan informasi pengunjung: IP: ${ip}`);
+    // Bersihkan IPv6 jika diperlukan
+    if (ip.startsWith('::ffff:')) {
+        ip = ip.substring(7);
     }
 
-    // Kirim index.html
-    res.sendFile(path.join(__dirname, 'index.html')); // Pastikan index.html ada di folder proyek
+    const now = new Date();
+    let greeting;
+    const hour = now.getHours();
+
+    if (hour >= 5 && hour < 12) {
+        greeting = "Selamat Pagi";
+    } else if (hour >= 12 && hour < 17) {
+        greeting = "Selamat Siang";
+    } else if (hour >= 17 && hour < 20) {
+        greeting = "Selamat Sore";
+    } else {
+        greeting = "Selamat Malam";
+    }
+
+    try {
+        const locationInfo = await getLocationInfo(ip);
+        const timestamp = now.toLocaleString();
+
+        const message = `
+        ✨ ${greeting}! ✨\n
+        📡 IP: \`${ip}\`\n
+        ⌚ Waktu: \`${timestamp}\`\n
+        🗺️ Lokasi: \`${locationInfo || 'Tidak dapat ditemukan'}\`\n
+        💻 User-Agent: \`${userAgent || 'Tidak diketahui'}\`\n
+        🔗 Referer: \`${referer}\`
+        `;
+
+        BOT.sendMessage(OWNER_ID, message, { parse_mode: 'MarkdownV2' });
+        console.log(message);
+    } catch (error) {
+        console.error('Error getting location or sending message:', error);
+        BOT.sendMessage(OWNER_ID, `⚠️ Error saat mendapatkan informasi pengunjung: IP: \`${req.ip}\` - ${error.message}`, { parse_mode: 'MarkdownV2' });
+    }
+
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Fungsi untuk mendapatkan informasi lokasi dari IP (menggunakan geoip-lite)
@@ -62,59 +82,110 @@ async function getLocationInfo(ip) {
     }
 }
 
+// Hapus fungsi getLocationInfoAlternative (tidak diperlukan)
+// Hapus fungsi takeScreenshot (tidak digunakan lagi)
 
-// Fungsi untuk mendapatkan informasi lokasi dari IP (menggunakan alternatif axios)
-//  Jika geoip-lite gagal,  coba metode ini.
-async function getLocationInfoAlternative(ip) {
-    try {
-        const response = await axios.get(`https://ipinfo.io/${ip}?token=4ed2c4496226d5`); // Ganti dengan token ipinfo Anda jika ada
-        if (response.data && response.data.city && response.data.country) {
-            return `${response.data.city}, ${response.data.country}`;
-        }
-        return 'Tidak dapat ditemukan';
-    } catch (error) {
-        console.error('Error getting location (axios):', error);
-        return 'Tidak dapat ditemukan (axios error)';
-    }
+// Perintah /serverinfo
+BOT.onText(/\/serverinfo/, (msg) => {
+    const chatId = msg.chat.id;
+
+    const serverInfo = `
+        💻 Server Info:\n
+        OS: ${os.platform()} ${os.release()}\n
+        Arsitektur: ${os.arch()}\n
+        Hostname: ${os.hostname()}\n
+        Uptime: ${formatUptime(os.uptime())}\n
+        RAM: ${formatRAM(os.totalmem(), os.freemem())}
+    `;
+    BOT.sendMessage(chatId, serverInfo, { parse_mode: 'MarkdownV2' });
+});
+
+// Fungsi format uptime
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / (60 * 60 * 24));
+    seconds %= (60 * 60 * 24);
+    const hours = Math.floor(seconds / (60 * 60));
+    seconds %= (60 * 60);
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+
+    const parts = [];
+    if (days) parts.push(`${days}d`);
+    if (hours) parts.push(`${hours}h`);
+    if (minutes) parts.push(`${minutes}m`);
+    if (seconds) parts.push(`${seconds}s`);
+
+    return parts.join(' ');
+}
+
+// Fungsi format RAM
+function formatRAM(total, free) {
+    const totalGB = (total / 1024 / 1024 / 1024).toFixed(2);
+    const freeGB = (free / 1024 / 1024 / 1024).toFixed(2);
+    return `${freeGB}GB / ${totalGB}GB`;
 }
 
 
+// Menangani perintah /start dengan tombol
+BOT.onText(/\/start/, (msg) => {
+    const chatId = msg.chat.id;
+    const username = msg.chat.username;
+    const greeting = `Halo ${username}! Selamat datang di bot ini.`;
 
-// Hapus fungsi takeScreenshot (tidak digunakan lagi)
-// async function takeScreenshot(url, clientId) {
-//     const fileName = `screenshot_${clientId}_${Date.now()}.png`;
-//     const filePath = path.join(__dirname, fileName);
+    const keyboard = {
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    { text: 'Info Server', callback_data: 'server_info' },
+                    { text: 'Tentang', callback_data: 'about' }
+                ]
+            ]
+        }
+    };
 
-//     try {
-//         console.log(`[${clientId}] Mengambil screenshot dari URL: ${url}`);
-//         const browser = await puppeteer.launch({
-//             headless: true,
-//             args: [
-//                 '--no-sandbox',
-//                 '--disable-setuid-sandbox',
-//                 '--disable-dev-shm-usage',
-//                 '--disable-accelerated-2d-canvas',
-//                 '--no-zygote',
-//                 '--disable-gpu',
-//             ],
-//         });
-
-//         const page = await browser.newPage();
-//         await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
-//         console.log(`[${clientId}] Halaman dimuat, mengambil screenshot...`);
-//         await page.screenshot({ path: filePath, fullPage: true });
-//         await browser.close();
-
-//         console.log(`[${clientId}] Screenshot berhasil diambil`);
-//         return filePath;
-//     } catch (err) {
-//         console.error(`[${clientId}] Gagal saat mengambil screenshot:`, err);
-//         console.error(err.stack);
-//         return null;
-//     }
-// }
+    BOT.sendMessage(chatId, greeting, keyboard);
+});
 
 
+// Menangani callback dari tombol
+BOT.on('callback_query', (callbackQuery) => {
+    const chatId = callbackQuery.message.chat.id;
+    const messageId = callbackQuery.message.message_id;
+    const data = callbackQuery.data;
+
+    switch (data) {
+        case 'server_info':
+            const serverInfo = `
+                💻 Server Info:\n
+                OS: ${os.platform()} ${os.release()}\n
+                Arsitektur: ${os.arch()}\n
+                Hostname: ${os.hostname()}\n
+                Uptime: ${formatUptime(os.uptime())}\n
+                RAM: ${formatRAM(os.totalmem(), os.freemem())}
+            `;
+            BOT.editMessageText(serverInfo, {
+                chat_id: chatId,
+                message_id: messageId,
+                parse_mode: 'MarkdownV2'
+            });
+
+            break;
+        case 'about':
+            BOT.editMessageText('Bot ini dibuat untuk tujuan demonstrasi.  Silakan hubungi owner untuk info lebih lanjut.', {
+                chat_id: chatId,
+                message_id: messageId
+            });
+            break;
+        default:
+            BOT.editMessageText('Perintah tidak dikenal.', {
+                chat_id: chatId,
+                message_id: messageId
+            });
+    }
+
+    // Konfirmasi callback query
+    BOT.answerCallbackQuery(callbackQuery.id);
+});
 
 // Mulai server Express
 app.listen(port, () => {
