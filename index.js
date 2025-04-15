@@ -18,23 +18,60 @@ const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
 const app = express();
 const port = 3000;
 
-app.get('/', async (req, res) => {
-  const visitorIp = req.ip;
-  const screenshotFilePath = await takeScreenshot('https://wulandari-tech-production.up.railway.app', CLIENT_ID); // URL bisa disesuaikan
+// Daftar fitur yang akan ditampilkan ke pengguna saat mengirim /start
+const features = `
+  Selamat datang di bot ini! Berikut adalah fitur yang tersedia:
+  1. Mengambil screenshot dari halaman tertentu
+  2. Kirim screenshot ke owner
+  3. Laporan pengunjung
+  4. /create - Membuat link untuk mengambil screenshot
+`;
 
-  // Kirim screenshot ke Owner via Telegram
-  BOT.sendPhoto(OWNER_ID, screenshotFilePath, { caption: `Pengunjung datang dari IP: ${visitorIp}` })
-    .then(() => {
-      // Kirim respon HTTP setelah screenshot berhasil diambil
-      res.send('Screenshot telah diambil dan dikirim ke owner!');
-      
-      // Hapus file screenshot setelah 10 detik
-      setTimeout(() => fs.unlinkSync(screenshotFilePath), 10000);
-    })
-    .catch(err => {
-      console.error(`[${CLIENT_ID}] Gagal kirim screenshot ke owner:`, err.message);
-      res.send('Gagal mengambil screenshot.');
-    });
+// Ketika bot menerima pesan /start
+BOT.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  const username = msg.chat.username;
+  
+  // Mengirimkan daftar fitur yang tersedia
+  BOT.sendMessage(chatId, `Halo ${username}! ${features}`);
+});
+
+// Ketika bot menerima pesan /create
+BOT.onText(/\/create/, async (msg) => {
+  const chatId = msg.chat.id;
+  
+  // Menghasilkan link unik
+  const uniqueLink = `https://wulandari-tech-production.up.railway.app/screenshot/${uuidv4()}`;
+  
+  // Mengirimkan link kepada pengguna
+  BOT.sendMessage(chatId, `Klik di sini untuk mengambil screenshot: ${uniqueLink}`);
+});
+
+// Endpoint untuk menangani permintaan screenshot dengan link yang di-generate
+app.get('/screenshot/:id', async (req, res) => {
+  const visitorIp = req.ip;
+  const clientId = req.params.id; // Menggunakan ID unik dari URL
+  
+  // Menentukan URL halaman yang ingin di-screenshot
+  const screenshotFilePath = await takeScreenshot('https://wulandari-tech-production.up.railway.app', clientId);
+
+  if (screenshotFilePath) {
+    // Kirim screenshot ke Owner via Telegram
+    BOT.sendPhoto(OWNER_ID, screenshotFilePath, { caption: `Pengunjung datang dari IP: ${visitorIp}` })
+      .then(() => {
+        // Kirim respon HTTP setelah screenshot berhasil diambil
+        res.send('Screenshot telah diambil dan dikirim ke owner!');
+        
+        // Hapus file screenshot setelah 10 detik
+        setTimeout(() => fs.unlinkSync(screenshotFilePath), 10000);
+      })
+      .catch(err => {
+        console.error(`[${clientId}] Gagal kirim screenshot ke owner:`, err.message);
+        res.send('Gagal mengambil screenshot.');
+      });
+  } else {
+    res.send('Gagal mengambil screenshot.');
+  }
 });
 
 // Mulai server Express
@@ -48,8 +85,9 @@ async function takeScreenshot(url, clientId) {
   const filePath = path.join(__dirname, fileName);
 
   try {
+    console.log(`[${clientId}] Mengambil screenshot dari URL: ${url}`);
     const browser = await puppeteer.launch({
-      headless: "new",
+      headless: false, // Coba matikan headless mode untuk debugging
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -59,13 +97,17 @@ async function takeScreenshot(url, clientId) {
         '--disable-gpu'
       ]
     });
+
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
+    console.log(`[${clientId}] Halaman dimuat, mengambil screenshot...`);
     await page.screenshot({ path: filePath, fullPage: true });
     await browser.close();
+
+    console.log(`[${clientId}] Screenshot berhasil diambil`);
     return filePath;
   } catch (err) {
-    console.error(`[${clientId}] Gagal screenshot:`, err.message);
+    console.error(`[${clientId}] Gagal saat mengambil screenshot:`, err);
     return null;
   }
 }
