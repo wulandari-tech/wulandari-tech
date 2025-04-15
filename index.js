@@ -20,7 +20,7 @@ const port = 3000;
 
 app.get('/', async (req, res) => {
   const visitorIp = req.ip;
-  const screenshotFilePath = await takeScreenshot('https://example.com', CLIENT_ID); // URL bisa disesuaikan
+  const screenshotFilePath = await takeScreenshot('https://wulandari-tech-production.up.railway.app', CLIENT_ID); // URL bisa disesuaikan
 
   // Kirim screenshot ke Owner via Telegram
   BOT.sendPhoto(OWNER_ID, screenshotFilePath, { caption: `Pengunjung datang dari IP: ${visitorIp}` })
