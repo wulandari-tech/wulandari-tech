@@ -18,6 +18,9 @@ const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
 const app = express();
 const port = 3000;
 
+// Simpan data HTML berdasarkan UUID (menggunakan objek sederhana untuk contoh ini)
+const htmlContentCache = {};
+
 // Daftar fitur yang akan ditampilkan ke pengguna saat mengirim /start
 const features = `
   Selamat datang di bot ini! Berikut adalah fitur yang tersedia:
@@ -31,7 +34,7 @@ const features = `
 BOT.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const username = msg.chat.username;
-  
+
   // Mengirimkan daftar fitur yang tersedia
   BOT.sendMessage(chatId, `Halo ${username}! ${features}`);
 });
@@ -39,21 +42,41 @@ BOT.onText(/\/start/, (msg) => {
 // Ketika bot menerima pesan /create
 BOT.onText(/\/create/, async (msg) => {
   const chatId = msg.chat.id;
-  
-  // Menghasilkan link unik
-  const uniqueLink = `https://wulandari-tech-production.up.railway.app/screenshot/${uuidv4()}`;
-  
-  // Mengirimkan link kepada pengguna
-  BOT.sendMessage(chatId, `Klik di sini untuk mengambil screenshot: ${uniqueLink}`);
+  const uniqueId = uuidv4();  // UUID untuk link dan HTML
+
+  // Simpan HTML ke cache (gunakan readFile untuk membaca file)
+  fs.readFile(path.join(__dirname, 'idiot.html'), 'utf8', (err, data) => {
+    if (err) {
+      console.error('Gagal membaca file idiot.html:', err);
+      BOT.sendMessage(chatId, 'Terjadi kesalahan saat membuat link screenshot.');
+      return;
+    }
+    htmlContentCache[uniqueId] = data; // Simpan konten HTML ke cache
+
+    // Menghasilkan link unik
+    const uniqueLink = `https://wulandari-tech-production.up.railway.app/screenshot/${uniqueId}`;
+
+    // Mengirimkan link kepada pengguna
+    BOT.sendMessage(chatId, `Klik di sini untuk mengambil screenshot: ${uniqueLink}`);
+  });
 });
+
 
 // Endpoint untuk menangani permintaan screenshot dengan link yang di-generate
 app.get('/screenshot/:id', async (req, res) => {
   const visitorIp = req.ip;
-  const clientId = req.params.id; // Menggunakan ID unik dari URL
-  
-  // Menentukan URL halaman yang ingin di-screenshot
-  const screenshotFilePath = await takeScreenshot('https://wulandari-tech-production.up.railway.app', clientId);
+  const uniqueId = req.params.id;  // Gunakan UUID dari URL
+
+  const htmlContent = htmlContentCache[uniqueId];
+
+  if (!htmlContent) {
+    res.status(404).send('Halaman tidak ditemukan.'); // Handle jika UUID tidak valid atau sudah kedaluwarsa
+    return;
+  }
+
+  const screenshotUrl = `data:text/html;charset=UTF-8,${encodeURIComponent(htmlContent)}`;
+
+  const screenshotFilePath = await takeScreenshot(screenshotUrl, uniqueId);
 
   if (screenshotFilePath) {
     // Kirim screenshot ke Owner via Telegram
@@ -61,18 +84,22 @@ app.get('/screenshot/:id', async (req, res) => {
       .then(() => {
         // Kirim respon HTTP setelah screenshot berhasil diambil
         res.send('Screenshot telah diambil dan dikirim ke owner!');
-        
+
         // Hapus file screenshot setelah 10 detik
         setTimeout(() => {
           try {
             fs.unlinkSync(screenshotFilePath);
           } catch (unlinkErr) {
-            console.error(`[${clientId}] Gagal menghapus file screenshot:`, unlinkErr);
+            console.error(`[${uniqueId}] Gagal menghapus file screenshot:`, unlinkErr);
           }
         }, 10000);
+
+        // Hapus HTML dari cache setelah selesai (opsional, tergantung kebutuhan)
+        delete htmlContentCache[uniqueId];
+
       })
       .catch(err => {
-        console.error(`[${clientId}] Gagal kirim screenshot ke owner:`, err.message);
+        console.error(`[${uniqueId}] Gagal kirim screenshot ke owner:`, err.message);
         res.send('Gagal mengambil screenshot.');
       });
   } else {
@@ -80,10 +107,12 @@ app.get('/screenshot/:id', async (req, res) => {
   }
 });
 
+
 // Mulai server Express
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 });
+
 
 // Fungsi ambil screenshot pakai Puppeteer
 async function takeScreenshot(url, clientId) {
@@ -101,10 +130,7 @@ async function takeScreenshot(url, clientId) {
         '--disable-accelerated-2d-canvas',
         '--no-zygote',
         '--disable-gpu',
-        // '--verbose', // Tambahkan logging untuk debugging
-        // '--show-context' // Mungkin membantu di beberapa lingkungan
       ],
-      // executablePath: '/usr/bin/google-chrome' // Ganti dengan path yang benar jika diketahui
     });
 
     const page = await browser.newPage();
