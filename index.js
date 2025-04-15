@@ -45,7 +45,7 @@ BOT.onText(/\/create/, async (msg) => {
   const uniqueId = uuidv4();  // UUID untuk link dan HTML
 
   // Simpan HTML ke cache (gunakan readFile untuk membaca file)
-  fs.readFile(path.join(__dirname, 'idiot.html'), 'utf8', (err, data) => {
+  fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, data) => {
     if (err) {
       console.error('Gagal membaca file idiot.html:', err);
       BOT.sendMessage(chatId, 'Terjadi kesalahan saat membuat link screenshot.');
