@@ -3,6 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path'); // Import the 'path' module
 
 const app = express();
 const port = 3000;
@@ -15,6 +16,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const apiKey = 'sk-u9di3e6xidkwqe';
+
+// Serve static files (index.html) from the current directory
+app.use(express.static(path.join(__dirname)));  // Serve static files (like index.html)
 
 // Endpoint for Mobile Legends Prices (Existing)
 app.get('/api/mobile-legends-prices', async (req, res) => {
@@ -101,20 +105,20 @@ app.get('/api/deposit-status', async (req, res) => {
     }
 });
 
-// Endpoint to Cancel Deposit (New)
-app.get('/api/cancel-deposit', async (req, res) => { // GET because the API uses GET
+// Endpoint to Cancel Deposit (Existing)
+app.get('/api/cancel-deposit', async (req, res) => {
     try {
-        const { id } = req.query;  // Get the 'id' from query parameters
+        const { id } = req.query;
 
         if (!id) {
             return res.status(400).json({ error: 'Missing required parameter: id' });
         }
 
         const apiUrl = `https://forestapi.web.id/api/h2h/deposit/cancel?api_key=${apiKey}&id=${id}`;
-        const response = await axios.get(apiUrl); // Use axios.get because the API uses GET
+        const response = await axios.get(apiUrl);
 
         if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data); // Or just return response.data if you want the whole response
+            res.json(response.data);
         } else {
             console.error('API Error (Cancel Deposit):', response.data);
             res.status(500).json({ error: 'Failed to cancel deposit' });
@@ -125,8 +129,7 @@ app.get('/api/cancel-deposit', async (req, res) => { // GET because the API uses
     }
 });
 
-app.use(express.static(path.join(__dirname)));
-
+// Start the server
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+    console.log(`Server listening at http://localhost:${port}`);
 });
