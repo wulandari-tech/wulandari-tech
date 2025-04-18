@@ -3,66 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOUR IDIOT</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>PAYMU-WANZOFC</title>
     <style>
+        :root {
+            --primary-color: #4a148c; /* Deep Purple */
+            --secondary-color: #6a1b9a; /* Lighter Purple */
+            --accent-color: #ce93d8; /* Pale Purple */
+            --text-color: #fff;
+            --background-color: #121212; /* Dark Background */
+            --border-radius: 0.5rem;
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1e1e2e;
-            color: #f8f8f8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
-            text-align: center;
-        }
-        .container {
-            background-color: #28283d;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            max-width: 80%;
-            width: 400px;
-        }
-        h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-            color: #ff69b4;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        p {
-            font-size: 1.2em;
+            padding: 0;
             line-height: 1.6;
-            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
-        .icon {
-            font-size: 3em;
-            color: #89cff0;
+
+        header {
+            background-color: var(--primary-color);
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: var(--box-shadow);
         }
-        .heart-icon {
-            color: #ff1493;
-            animation: pulse 1s infinite;
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: bold;
         }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
+
+        main {
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .section {
+            background-color: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .table-container {
+            overflow-x: auto; /* For horizontal scrolling on small screens */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .logo-img {
+            width: 40px;
+            height: auto;
+            vertical-align: middle; /* Align the image vertically with the text */
+            margin-right: 0.5rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 0.75rem;
+            border: 1px solid #333;
+            border-radius: var(--border-radius);
+            background-color: #272727;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s ease; /* Smooth transition */
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        p.success, p.error {
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            font-weight: bold;
+        }
+
+        p.success {
+            background-color: rgba(76, 175, 80, 0.2); /* Light Green */
+            color: #8bc34a; /* Green */
+        }
+
+        p.error {
+            background-color: rgba(244, 67, 54, 0.2); /* Light Red */
+            color: #f44336; /* Red */
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.8rem;
+            color: #ddd;
+            box-shadow: var(--box-shadow);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <i class="fas fa-heart heart-icon"></i>
-        <h1>YOUR IDIOT</h1>
-        <p>Selamat datang di dunia yang penuh kejutan! </p>
-        <i class="fas fa-grin-tongue-squint icon"></i>
-    </div>
+    <header>
+        <h1>PAYMU-WANZOFC</h1>
+    </header>
+    <main>
+        <section class="section">
+            <h2>Mobile Legends Diamond Prices</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Code</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="price-table-body"></tbody>
+                </table>
+            </div>
+            <p id="error-message-prices" class="error"></p>
+        </section>
+
+        <section class="section">
+            <h2>Deposit Methods</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Logo</th>
+                            <th>Metode</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Minimum</th>
+                            <th>Maximum</th>
+                            <th>Fee</th>
+                            <th>Percentage Fee</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deposit-table-body"></tbody>
+                </table>
+            </div>
+            <p id="error-message-deposit" class="error"></p>
+        </section>
+
+        <section class="section">
+            <h2>Create Deposit</h2>
+            <form id="create-deposit-form">
+                <label for="reff_id">Reff ID:</label>
+                <input type="text" id="reff_id" name="reff_id" required>
+
+                <label for="method">Method:</label>
+                <select id="method" name="method" required></select>
+
+                <label for="nominal">Nominal:</label>
+                <input type="number" id="nominal" name="nominal" required>
+
+                <label for="phone_number">Phone Number (optional):</label>
+                <input type="text" id="phone_number" name="phone_number">
+
+                <label for="fee_by_customer">Fee by Customer:</label>
+                <select id="fee_by_customer" name="fee_by_customer">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+
+                <button type="button" onclick="createDeposit()">Create Deposit</button>
+                <p id="create-deposit-message" class="success"></p>
+                <p id="create-deposit-error" class="error"></p>
+            </form>
+        </section>
+
+        <section class="section">
+            <h2>Get Deposit Status</h2>
+            <form id="get-deposit-status-form">
+                <label for="deposit_id">Deposit ID:</label>
+                <input type="text" id="deposit_id" name="deposit_id" required>
+                <button type="button" onclick="getDepositStatus()">Get Status</button>
+                <p id="deposit-status-message" class="success"></p>
+                <p id="deposit-status-error" class="error"></p>
+            </form>
+        </section>
+
+        <section class="section">
+            <h2>Cancel Deposit</h2>
+            <form id="cancel-deposit-form">
+                <label for="cancel_deposit_id">Deposit ID to Cancel:</label>
+                <input type="text" id="cancel_deposit_id" name="cancel_deposit_id" required>
+                <button type="button" onclick="cancelDeposit()">Cancel Deposit</button>
+                <p id="cancel-deposit-message" class="success"></p>
+                <p id="cancel-deposit-error" class="error"></p>
+            </form>
+        </section>
+    </main>
+    <footer>
+        &copy; 2025 PAYMU-WANZOFC. All rights reserved.
+    </footer>
+
+    <script>
+        async function fetchPrices() {
+            try {
+                const response = await fetch('paymu-wanzofc.up.railway.app/api/mobile-legends-prices');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayPrices(data);
+            } catch (error) {
+                console.error('Fetch error (prices):', error);
+                document.getElementById('error-message-prices').textContent = 'Failed to load price data.';
+            }
+        }
+
+        function displayPrices(prices) {
+            const tableBody = document.getElementById('price-table-body');
+            tableBody.innerHTML = '';
+
+            prices.forEach(item => {
+                const row = document.createElement('tr');
+                const statusCell = document.createElement('td');
+                statusCell.textContent = item.status;
+                if (item.status === '✅') {
+                    statusCell.classList.add('status-check');
+                } else if (item.status === '⛔') {
+                    statusCell.classList.add('status-error');
+                }
+                row.appendChild(statusCell);
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = item.name;
+                row.appendChild(nameCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = item.type;
+                row.appendChild(typeCell);
+
+                const priceCell = document.createElement('td');
+                priceCell.textContent = item.price;
+                row.appendChild(priceCell);
+
+                const codeCell = document.createElement('td');
+                codeCell.textContent = item.code;
+                row.appendChild(codeCell);
+
+                const noteCell = document.createElement('td');
+                noteCell.textContent = item.note;
+                row.appendChild(noteCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function fetchDepositMethods() {
+            try {
+                const response = await fetch('paymu-wanzofc.up.railway.app/api/deposit-methods');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                displayDepositMethods(data);
+                populateDepositMethodSelect(data);
+            } catch (error) {
+                console.error('Fetch error (deposit):', error);
+                document.getElementById('error-message-deposit').textContent = 'Failed to load deposit methods.';
+            }
+        }
+
+        function displayDepositMethods(methods) {
+            const tableBody = document.getElementById('deposit-table-body');
+            tableBody.innerHTML = '';
+
+            methods.forEach(method => {
+                const row = document.createElement('tr');
+                const logoCell = document.createElement('td');
+                const logoImg = document.createElement('img');
+                logoImg.src = method.logo_image_url;
+                logoImg.alt = method.name;
+                logoImg.classList.add('logo-img');
+                logoCell.appendChild(logoImg);
+                row.appendChild(logoCell);
+
+                const metodeCell = document.createElement('td');
+                metodeCell.textContent = method.metode;
+                row.appendChild(metodeCell);
+
+                const nameCell = document.createElement('td');
+                nameCell.textContent = method.name;
+                row.appendChild(nameCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = method.type;
+                row.appendChild(typeCell);
+
+                const minimumCell = document.createElement('td');
+                minimumCell.textContent = method.minimum;
+                row.appendChild(minimumCell);
+
+                const maximumCell = document.createElement('td');
+                maximumCell.textContent = method.maximum;
+                row.appendChild(maximumCell);
+
+                const feeCell = document.createElement('td');
+                feeCell.textContent = method.fee;
+                row.appendChild(feeCell);
+
+                const percentageFeeCell = document.createElement('td');
+                percentageFeeCell.textContent = method.percentage_fee;
+                row.appendChild(percentageFeeCell);
+
+                const statusCell = document.createElement('td');
+                statusCell.textContent = method.status;
+                if (method.status === 'active') {
+                    statusCell.classList.add('status-check');
+                } else {
+                    statusCell.classList.add('status-error');
+                }
+                row.appendChild(statusCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function populateDepositMethodSelect(methods) {
+            const methodSelect = document.getElementById('method');
+            methodSelect.innerHTML = '';
+
+            methods.forEach(method => {
+                const option = document.createElement('option');
+                option.value = method.metode;
+                option.textContent = method.name;
+                methodSelect.appendChild(option);
+            });
+        }
+
+        async function createDeposit() {
+            const reffId = document.getElementById('reff_id').value;
+            const method = document.getElementById('method').value;
+            const nominal = document.getElementById('nominal').value;
+            const phoneNumber = document.getElementById('phone_number').value;
+            const feeByCustomer = document.getElementById('fee_by_customer').value;
+
+            try {
+                const response = await fetch('paymu-wanzofc.up.railway.app/api/create-deposit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reff_id: reffId,
+                        method: method,
+                        nominal: nominal,
+                        phone_number: phoneNumber,
+                        fee_by_customer: feeByCustomer
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('create-deposit-message').textContent = `Deposit created successfully. Reff ID: ${data.reff_id}, QR Image URL: ${data.qr_image_url}`;
+                document.getElementById('create-deposit-error').textContent = '';
+                console.log('Deposit creation response:', data);
+
+            } catch (error) {
+                console.error('Create deposit error:', error);
+                document.getElementById('create-deposit-error').textContent = 'Failed to create deposit. Check the console for details.';
+                document.getElementById('create-deposit-message').textContent = '';
+            }
+        }
+
+        async function getDepositStatus() {
+            const depositId = document.getElementById('deposit_id').value;
+
+            try {
+                const response = await fetch(`paymu-wanzofc.up.railway.app/api/deposit-status?id=${depositId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                document.getElementById('deposit-status-message').textContent = `Status: ${data.data.status}, Reff ID: ${data.data.reff_id}`;
+                document.getElementById('deposit-status-error').textContent = '';
+                console.log('Deposit status response:', data);
+
+            } catch (error) {
+                console.error('Get deposit status error:', error);
+                document.getElementById('deposit-status-error').textContent = 'Failed to get deposit status. Check the console for details.';
+                document.getElementById('deposit-status-message').textContent = '';
+            }
+        }
+
+        async function cancelDeposit() {
+            const depositId = document.getElementById('cancel_deposit_id').value;
+
+            try {
+                const response = await fetch(`paymu-wanzofc.up.railway.app/api/cancel-deposit?id=${depositId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                document.getElementById('cancel-deposit-message').textContent = `Deposit cancelled successfully.`;
+                document.getElementById('cancel-deposit-error').textContent = '';
+                console.log('Cancel deposit response:', data);
+
+            } catch (error) {
+                console.error('Cancel deposit error:', error);
+                document.getElementById('cancel-deposit-error').textContent = 'Failed to cancel deposit. Check the console for details.';
+                document.getElementById('cancel-deposit-message').textContent = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchPrices();
+            fetchDepositMethods();
+        });
+    </script>
 </body>
 </html>
