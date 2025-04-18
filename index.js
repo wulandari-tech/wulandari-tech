@@ -125,6 +125,7 @@ app.get('/api/cancel-deposit', async (req, res) => { // GET because the API uses
     }
 });
 
+app.use(express.static(path.join(__dirname)));
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
