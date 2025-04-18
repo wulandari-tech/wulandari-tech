@@ -1,197 +1,131 @@
-const TelegramBot = require('node-telegram-bot-api');
-const os = require('os');
-const { v4: uuidv4 } = require('uuid');
-// const puppeteer = require('puppeteer');  // Hapus
-const fs = require('fs');
-const path = require('path');
+// server.js (Updated)
 const express = require('express');
-const geoip = require('geoip-lite');
-// const axios = require('axios'); // Hapus
+const axios = require('axios');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 
-// Konfigurasi manual (tanpa .env)
-const BOT_TOKEN = '7732562102:AAEH2ydv6d4q3AamrGoZaoo6ZdFcghQcf-A';
-const OWNER_ID = '7673834738'; // dalam bentuk string
-const CLIENT_ID = uuidv4().slice(0, 5);
-
-// Inisialisasi bot
-const BOT = new TelegramBot(BOT_TOKEN, { polling: true });
-
-// Inisialisasi server Express di port 3000
 const app = express();
 const port = 3000;
 
-// Endpoint untuk menangani akses ke root ("/")
-app.get('/', async (req, res) => {
-    const ip = req.ip;
-    const referer = req.headers.referer || 'Tidak ada';
+// Enable CORS
+app.use(cors());
 
-    // Bersihkan IPv6 jika diperlukan
-    if (ip.startsWith('::ffff:')) {
-        ip = ip.substring(7);
-    }
+// Middleware to parse JSON request bodies
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-    const now = new Date();
-    let greeting;
-    const hour = now.getHours();
+const apiKey = 'sk-u9di3e6xidkwqe';
 
-    if (hour >= 5 && hour < 12) {
-        greeting = "Selamat Pagi";
-    } else if (hour >= 12 && hour < 17) {
-        greeting = "Selamat Siang";
-    } else if (hour >= 17 && hour < 20) {
-        greeting = "Selamat Sore";
-    } else {
-        greeting = "Selamat Malam";
-    }
-
+// Endpoint for Mobile Legends Prices (Existing)
+app.get('/api/mobile-legends-prices', async (req, res) => {
     try {
-        const locationInfo = await getLocationInfo(ip);
-        const timestamp = now.toLocaleString();
+        const apiUrl = `https://forestapi.web.id/api/h2h/price-list/games/mobile-legends?api_key=${apiKey}&profit_percent=0`;
+        const response = await axios.get(apiUrl);
 
-        const message = `
-        ✨ ${greeting}! ✨\n
-        📡 IP: \`${ip}\`\n
-        ⌚ Waktu: \`${timestamp}\`\n
-        🗺️ Lokasi: \`${locationInfo || 'Tidak dapat ditemukan'}\`\n
-        🔗 Referer: \`${referer}\`
-        `;
-
-        BOT.sendMessage(OWNER_ID, message, { parse_mode: 'MarkdownV2' });
-        console.log(message);
+        if (response.data.status === 'success' && response.data.code === 200) {
+            res.json(response.data.data);
+        } else {
+            console.error('API Error (Prices):', response.data);
+            res.status(500).json({ error: 'Failed to fetch prices' });
+        }
     } catch (error) {
-        console.error('Error getting location or sending message:', error);
-        BOT.sendMessage(OWNER_ID, `⚠️ Error saat mendapatkan informasi pengunjung: IP: \`${req.ip}\` - ${error.message}`, { parse_mode: 'MarkdownV2' });
+        console.error('Error fetching prices:', error);
+        res.status(500).json({ error: 'Internal server error (prices)' });
     }
-
-    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Fungsi untuk mendapatkan informasi lokasi dari IP (menggunakan geoip-lite)
-async function getLocationInfo(ip) {
+// Endpoint for Deposit Methods (Existing)
+app.get('/api/deposit-methods', async (req, res) => {
     try {
-        const geo = geoip.lookup(ip);
-        if (geo) {
-            return `${geo.city}, ${geo.country}`;
+        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/methods?api_key=${apiKey}`;
+        const response = await axios.get(apiUrl);
+
+        if (response.data.status === 'success' && response.data.code === 200) {
+            res.json(response.data.data);
+        } else {
+            console.error('API Error (Deposit Methods):', response.data);
+            res.status(500).json({ error: 'Failed to fetch deposit methods' });
         }
-        return 'Tidak dapat ditemukan';
     } catch (error) {
-        console.error('Error looking up location:', error);
-        return 'Tidak dapat ditemukan (error geoip)';
+        console.error('Error fetching deposit methods:', error);
+        res.status(500).json({ error: 'Internal server error (deposit methods)' });
     }
-}
-
-// Hapus fungsi getLocationInfoAlternative (tidak diperlukan)
-// Hapus fungsi takeScreenshot (tidak digunakan lagi)
-
-// Perintah /serverinfo
-BOT.onText(/\/serverinfo/, (msg) => {
-    const chatId = msg.chat.id;
-
-    const serverInfo = `
-        💻 Server Info:\n
-        OS: ${os.platform()} ${os.release()}\n
-        Arsitektur: ${os.arch()}\n
-        Hostname: ${os.hostname()}\n
-        Uptime: ${formatUptime(os.uptime())}\n
-        RAM: ${formatRAM(os.totalmem(), os.freemem())}
-    `;
-    BOT.sendMessage(chatId, serverInfo, { parse_mode: 'MarkdownV2' });
 });
 
-// Fungsi format uptime
-function formatUptime(seconds) {
-    const days = Math.floor(seconds / (60 * 60 * 24));
-    seconds %= (60 * 60 * 24);
-    const hours = Math.floor(seconds / (60 * 60));
-    seconds %= (60 * 60);
-    const minutes = Math.floor(seconds / 60);
-    seconds %= 60;
+// Endpoint to Create a Deposit (Existing)
+app.post('/api/create-deposit', async (req, res) => {
+    try {
+        const { reff_id, method, phone_number, fee_by_customer, nominal } = req.body;
 
-    const parts = [];
-    if (days) parts.push(`${days}d`);
-    if (hours) parts.push(`${hours}h`);
-    if (minutes) parts.push(`${minutes}m`);
-    if (seconds) parts.push(`${seconds}s`);
-
-    return parts.join(' ');
-}
-
-// Fungsi format RAM
-function formatRAM(total, free) {
-    const totalGB = (total / 1024 / 1024 / 1024).toFixed(2);
-    const freeGB = (free / 1024 / 1024 / 1024).toFixed(2);
-    return `${freeGB}GB / ${totalGB}GB`;
-}
-
-
-// Menangani perintah /start dengan tombol
-BOT.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    const username = msg.chat.username;
-    const greeting = `Halo ${username}! Selamat datang di bot ini.`;
-
-    const keyboard = {
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    { text: 'Info Server', callback_data: 'server_info' },
-                    { text: 'Tentang', callback_data: 'about' },
-                    { text: 'Buat Link', callback_data: 'create_link' } // Menambahkan tombol "Buat Link"
-                ]
-            ]
+        if (!reff_id || !method || !nominal) {
+            return res.status(400).json({ error: 'Missing required parameters.' });
         }
-    };
 
-    BOT.sendMessage(chatId, greeting, keyboard);
-});
+        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/create?api_key=${apiKey}&reff_id=${reff_id}&method=${method}&phone_number=${phone_number || ''}&fee_by_customer=${fee_by_customer || false}&nominal=${nominal}`;
 
+        const response = await axios.post(apiUrl);
 
-// Menangani callback dari tombol
-BOT.on('callback_query', (callbackQuery) => {
-    const chatId = callbackQuery.message.chat.id;
-    const messageId = callbackQuery.message.message_id;
-    const data = callbackQuery.data;
-
-    switch (data) {
-        case 'server_info':
-            const serverInfo = `
-                💻 Server Info:\n
-                OS: ${os.platform()} ${os.release()}\n
-                Arsitektur: ${os.arch()}\n
-                Hostname: ${os.hostname()}\n
-                Uptime: ${formatUptime(os.uptime())}\n
-                RAM: ${formatRAM(os.totalmem(), os.freemem())}
-            `;
-            BOT.editMessageText(serverInfo, {
-                chat_id: chatId,
-                message_id: messageId,
-                parse_mode: 'MarkdownV2'
-            });
-            break;
-        case 'about':
-            BOT.editMessageText('Bot ini dibuat untuk tujuan demonstrasi.  Silakan hubungi owner untuk info lebih lanjut.', {
-                chat_id: chatId,
-                message_id: messageId
-            });
-            break;
-        case 'create_link':  // Menangani klik tombol "Buat Link"
-            const uniqueId = uuidv4().slice(0, 5); // Menggunakan 5 karakter pertama UUID
-            const link = `https://wulandari-tech-production.up.railway.app/wanzofc`; // Ganti dengan URL Anda
-            BOT.sendMessage(chatId, `Klik link berikut: \`${link}\``, { parse_mode: 'MarkdownV2' });
-            break;
-
-        default:
-            BOT.editMessageText('Perintah tidak dikenal.', {
-                chat_id: chatId,
-                message_id: messageId
-            });
+        if (response.data.status === 'success' && response.data.code === 200) {
+            res.json(response.data.data);
+        } else {
+            console.error('API Error (Create Deposit):', response.data);
+            res.status(500).json({ error: 'Failed to create deposit' });
+        }
+    } catch (error) {
+        console.error('Error creating deposit:', error);
+        res.status(500).json({ error: 'Internal server error (create deposit)' });
     }
-
-    // Konfirmasi callback query
-    BOT.answerCallbackQuery(callbackQuery.id);
 });
 
-// Mulai server Express
+// Endpoint to Get Deposit Status (Existing)
+app.get('/api/deposit-status', async (req, res) => {
+    try {
+        const { id } = req.query;
+
+        if (!id) {
+            return res.status(400).json({ error: 'Missing required parameter: id' });
+        }
+
+        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/status?api_key=${apiKey}&id=${id}`;
+        const response = await axios.get(apiUrl);
+
+        if (response.data.status === 'success' && response.data.code === 200) {
+            res.json(response.data);
+        } else {
+            console.error('API Error (Deposit Status):', response.data);
+            res.status(500).json({ error: 'Failed to get deposit status' });
+        }
+    } catch (error) {
+        console.error('Error getting deposit status:', error);
+        res.status(500).json({ error: 'Internal server error (deposit status)' });
+    }
+});
+
+// Endpoint to Cancel Deposit (New)
+app.get('/api/cancel-deposit', async (req, res) => { // GET because the API uses GET
+    try {
+        const { id } = req.query;  // Get the 'id' from query parameters
+
+        if (!id) {
+            return res.status(400).json({ error: 'Missing required parameter: id' });
+        }
+
+        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/cancel?api_key=${apiKey}&id=${id}`;
+        const response = await axios.get(apiUrl); // Use axios.get because the API uses GET
+
+        if (response.data.status === 'success' && response.data.code === 200) {
+            res.json(response.data); // Or just return response.data if you want the whole response
+        } else {
+            console.error('API Error (Cancel Deposit):', response.data);
+            res.status(500).json({ error: 'Failed to cancel deposit' });
+        }
+    } catch (error) {
+        console.error('Error canceling deposit:', error);
+        res.status(500).json({ error: 'Internal server error (cancel deposit)' });
+    }
+});
+
+
 app.listen(port, () => {
-    console.log(`Server berjalan di http://localhost:${port}`);
+  console.log(`Server listening at http://localhost:${port}`);
 });
