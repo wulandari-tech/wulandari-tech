@@ -3,475 +3,474 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PAYMU-WANZOFC</title>
+    <title>pay mu wanzofc</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512..." crossorigin="anonymous" />
     <style>
-        :root {
-            --primary-color: #4a148c; /* Deep Purple */
-            --secondary-color: #6a1b9a; /* Lighter Purple */
-            --accent-color: #ce93d8; /* Pale Purple */
-            --text-color: #fff;
-            --background-color: #121212; /* Dark Background */
-            --border-radius: 0.5rem;
-            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
+        /* General Styles */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
             margin: 0;
             padding: 0;
+            background: linear-gradient(135deg, #1a202c, #2d3748); /* Dark background, similar to Tailwind dark mode */
+            color: #cbd5e1; /* Light text color, similar to Tailwind text-gray-300 */
             line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
-        header {
-            background-color: var(--primary-color);
-            padding: 1rem 0;
-            text-align: center;
-            box-shadow: var(--box-shadow);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        main {
-            padding: 2rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .section {
-            background-color: #1e1e1e;
+        .container {
+            max-width: 90%;
+            margin: 2rem auto;
             padding: 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
+            background-color: rgba(31, 41, 55, 0.8); /* Slightly transparent dark background, similar to Tailwind bg-gray-700 */
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Shadow */
         }
 
-        .table-container {
-            overflow-x: auto; /* For horizontal scrolling on small screens */
+        h1, h2, h3 {
+            color: #a0aec0; /* Lighter heading color, similar to Tailwind text-gray-400 */
+            margin-bottom: 1rem;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        button {
+            background-color: #4a5568; /* Darker button background, similar to Tailwind bg-gray-600 */
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease-in-out;
         }
 
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-
-        th {
-            background-color: var(--secondary-color);
-            font-weight: bold;
-        }
-
-        .logo-img {
-            width: 40px;
-            height: auto;
-            vertical-align: middle; /* Align the image vertically with the text */
-            margin-right: 0.5rem;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        label {
-            font-weight: bold;
+        button:hover {
+            background-color: #6b7280; /* Button hover color, similar to Tailwind bg-gray-500 */
         }
 
         input[type="text"],
         input[type="number"],
         select {
-            padding: 0.75rem;
-            border: 1px solid #333;
-            border-radius: var(--border-radius);
-            background-color: #272727;
-            color: var(--text-color);
-            font-size: 1rem;
+            background-color: #2d3748; /* Input background, similar to Tailwind bg-gray-800 */
+            color: #cbd5e1;
+            padding: 0.5rem;
+            border: 1px solid #4a5568;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            box-sizing: border-box; /* Important for width */
         }
 
-        button {
-            padding: 0.75rem 1.5rem;
-            background-color: var(--accent-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Flexbox for better layout */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-start; /* Align buttons to the start (left) */
+        }
+
+        /* Mobile Legends Prices Section */
+        .prices-section {
+            margin-top: 2rem;
+        }
+
+        .prices-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .prices-table th, .prices-table td {
+            border: 1px solid #4a5568;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .prices-table th {
+            background-color: #1a202c; /* Header background, same as body */
             font-weight: bold;
-            transition: background-color 0.2s ease; /* Smooth transition */
         }
 
-        button:hover {
-            background-color: var(--secondary-color);
+        /* Deposit Methods Section */
+        .deposit-methods-section {
+            margin-top: 2rem;
         }
 
-        p.success, p.error {
+        .deposit-methods-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .deposit-methods-list li {
             padding: 0.75rem;
-            border-radius: var(--border-radius);
-            font-weight: bold;
+            border: 1px solid #4a5568;
+            margin-bottom: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #2d3748; /* Similar to input background */
         }
 
-        p.success {
-            background-color: rgba(76, 175, 80, 0.2); /* Light Green */
-            color: #8bc34a; /* Green */
+        /* Status Display */
+        .status-display {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            background-color: #2d3748;
+            color: #cbd5e1;
+            border: 1px solid #4a5568;
         }
 
-        p.error {
-            background-color: rgba(244, 67, 54, 0.2); /* Light Red */
-            color: #f44336; /* Red */
+        .success {
+            color: #38a169; /* Green for success */
+            border-color: #38a169;
         }
 
-        footer {
-            background-color: var(--primary-color);
-            text-align: center;
-            padding: 1rem 0;
-            font-size: 0.8rem;
-            color: #ddd;
-            box-shadow: var(--box-shadow);
+        .error {
+            color: #e53e3e; /* Red for error */
+            border-color: #e53e3e;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            border: 4px solid rgba(203, 213, 225, 0.2); /* Light gray */
+            border-top: 4px solid #38b2ac; /* Teal */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px; /* Space from the text */
+            display: none; /* Initially hidden */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            main {
-                padding: 1rem;
+            .container {
+                max-width: 95%;
+            }
+
+            .button-group {
+                flex-direction: column; /* Stack buttons on smaller screens */
+                align-items: stretch; /* Make buttons full width */
+            }
+        }
+
+        /* Animated Background */
+        body {
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+            /* Animation for subtle movement */
+            background-size: 200% 200%; /* Larger size for movement */
+            animation: gradientAnimation 10s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>PAYMU-WANZOFC</h1>
-    </header>
-    <main>
-        <section class="section">
-            <h2>Mobile Legends Diamond Prices</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Status</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Price</th>
-                            <th>Code</th>
-                            <th>Note</th>
-                        </tr>
-                    </thead>
-                    <tbody id="price-table-body"></tbody>
-                </table>
+    <div class="container">
+        <h1><i class="fas fa-wallet"></i> Pay Mu Wanzofc</h1>
+        <p>Welcome to the Pay Mu Wanzofc interface.  Manage your deposits and view Mobile Legends prices.</p>
+
+        <!-- Create Deposit Form -->
+        <h2><i class="fas fa-money-bill-wave"></i> Create Deposit</h2>
+        <div id="createDepositForm">
+            <div class="form-group">
+                <label for="reffId">Reff ID:</label>
+                <input type="text" id="reffId" placeholder="Enter Reff ID">
             </div>
-            <p id="error-message-prices" class="error"></p>
-        </section>
-
-        <section class="section">
-            <h2>Deposit Methods</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Logo</th>
-                            <th>Metode</th>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Minimum</th>
-                            <th>Maximum</th>
-                            <th>Fee</th>
-                            <th>Percentage Fee</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deposit-table-body"></tbody>
-                </table>
-            </div>
-            <p id="error-message-deposit" class="error"></p>
-        </section>
-
-        <section class="section">
-            <h2>Create Deposit</h2>
-            <form id="create-deposit-form">
-                <label for="reff_id">Reff ID:</label>
-                <input type="text" id="reff_id" name="reff_id" required>
-
+            <div class="form-group">
                 <label for="method">Method:</label>
-                <select id="method" name="method" required></select>
-
-                <label for="nominal">Nominal:</label>
-                <input type="number" id="nominal" name="nominal" required>
-
-                <label for="phone_number">Phone Number (optional):</label>
-                <input type="text" id="phone_number" name="phone_number">
-
-                <label for="fee_by_customer">Fee by Customer:</label>
-                <select id="fee_by_customer" name="fee_by_customer">
-                    <option value="false">No</option>
-                    <option value="true">Yes</option>
+                <select id="method">
+                    <option value="" disabled selected>Select a method</option>
                 </select>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="text" id="phoneNumber" placeholder="Enter Phone Number (Optional)">
+            </div>
+            <div class="form-group">
+                <label for="nominal">Nominal:</label>
+                <input type="number" id="nominal" placeholder="Enter Nominal">
+            </div>
+            <div class="form-group">
+                <label for="feeByCustomer">Fee by Customer:</label>
+                <input type="checkbox" id="feeByCustomer">
+            </div>
+            <button id="createDepositButton">Create Deposit <span class="loading-spinner" id="createDepositSpinner"></span></button>
+        </div>
 
-                <button type="button" onclick="createDeposit()">Create Deposit</button>
-                <p id="create-deposit-message" class="success"></p>
-                <p id="create-deposit-error" class="error"></p>
-            </form>
-        </section>
+        <!-- Deposit Status Section -->
+        <h2><i class="fas fa-info-circle"></i> Deposit Status</h2>
+        <div id="depositStatusSection">
+            <div class="form-group">
+                <label for="depositId">Deposit ID:</label>
+                <input type="text" id="depositId" placeholder="Enter Deposit ID">
+            </div>
+            <div class="button-group">
+                <button id="getDepositStatusButton">Get Status <span class="loading-spinner" id="getStatusSpinner"></span></button>
+                <button id="cancelDepositButton">Cancel Deposit <span class="loading-spinner" id="cancelDepositSpinner"></span></button>
+            </div>
+            <div class="status-display hidden" id="depositStatusDisplay"></div>
+        </div>
 
-        <section class="section">
-            <h2>Get Deposit Status</h2>
-            <form id="get-deposit-status-form">
-                <label for="deposit_id">Deposit ID:</label>
-                <input type="text" id="deposit_id" name="deposit_id" required>
-                <button type="button" onclick="getDepositStatus()">Get Status</button>
-                <p id="deposit-status-message" class="success"></p>
-                <p id="deposit-status-error" class="error"></p>
-            </form>
-        </section>
 
-        <section class="section">
-            <h2>Cancel Deposit</h2>
-            <form id="cancel-deposit-form">
-                <label for="cancel_deposit_id">Deposit ID to Cancel:</label>
-                <input type="text" id="cancel_deposit_id" name="cancel_deposit_id" required>
-                <button type="button" onclick="cancelDeposit()">Cancel Deposit</button>
-                <p id="cancel-deposit-message" class="success"></p>
-                <p id="cancel-deposit-error" class="error"></p>
-            </form>
-        </section>
-    </main>
-    <footer>
-        &copy; 2025 PAYMU-WANZOFC. All rights reserved.
-    </footer>
+        <!-- Mobile Legends Prices Section -->
+        <div class="prices-section">
+            <h2><i class="fas fa-tags"></i> Mobile Legends Prices</h2>
+            <table class="prices-table" id="pricesTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Prices will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Deposit Methods Section -->
+        <div class="deposit-methods-section">
+            <h2><i class="fas fa-credit-card"></i> Deposit Methods</h2>
+            <ul class="deposit-methods-list" id="depositMethodsList">
+                <!-- Deposit methods will be populated here -->
+            </ul>
+        </div>
+    </div>
 
     <script>
-        async function fetchPrices() {
-            try {
-                const response = await fetch('paymu-wanzofc.up.railway.app/api/mobile-legends-prices');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                displayPrices(data);
-            } catch (error) {
-                console.error('Fetch error (prices):', error);
-                document.getElementById('error-message-prices').textContent = 'Failed to load price data.';
-            }
+        // Utility function to show and hide loading spinners
+        function showSpinner(spinnerId) {
+            const spinner = document.getElementById(spinnerId);
+            if (spinner) spinner.style.display = 'inline-block'; // Show
         }
 
-        function displayPrices(prices) {
-            const tableBody = document.getElementById('price-table-body');
-            tableBody.innerHTML = '';
+        function hideSpinner(spinnerId) {
+            const spinner = document.getElementById(spinnerId);
+            if (spinner) spinner.style.display = 'none'; // Hide
+        }
 
-            prices.forEach(item => {
-                const row = document.createElement('tr');
-                const statusCell = document.createElement('td');
-                statusCell.textContent = item.status;
-                if (item.status === '✅') {
-                    statusCell.classList.add('status-check');
-                } else if (item.status === '⛔') {
-                    statusCell.classList.add('status-error');
+        // Function to display status messages
+        function displayStatus(message, type, displayId) {
+            const displayElement = document.getElementById(displayId);
+            if (!displayElement) return; // Exit if element doesn't exist
+            displayElement.textContent = message;
+            displayElement.className = `status-display ${type}`;
+            displayElement.classList.remove('hidden');
+        }
+
+        function clearStatus(displayId) {
+            const displayElement = document.getElementById(displayId);
+            if (!displayElement) return;
+            displayElement.textContent = '';
+            displayElement.className = 'status-display hidden';
+        }
+
+
+        // --- Create Deposit ---
+        const createDepositButton = document.getElementById('createDepositButton');
+        if (createDepositButton) {
+            createDepositButton.addEventListener('click', async () => {
+                clearStatus('depositStatusDisplay');
+                showSpinner('createDepositSpinner');
+
+                const reffId = document.getElementById('reffId').value;
+                const method = document.getElementById('method').value;
+                const phoneNumber = document.getElementById('phoneNumber').value;
+                const nominal = document.getElementById('nominal').value;
+                const feeByCustomer = document.getElementById('feeByCustomer').checked;
+
+                const requestBody = {
+                    reff_id: reffId,
+                    method: method,
+                    phone_number: phoneNumber,
+                    nominal: nominal,
+                    fee_by_customer: feeByCustomer
+                };
+
+                try {
+                    const response = await axios.post('/api/create-deposit', requestBody);
+
+                    if (response.data) {
+                        displayStatus(`Deposit created successfully.  Deposit ID: ${response.data.id}`, 'success', 'depositStatusDisplay');
+                        // Optionally, pre-populate the deposit ID field
+                        document.getElementById('depositId').value = response.data.id;
+                    } else {
+                        displayStatus('Failed to create deposit.', 'error', 'depositStatusDisplay');
+                    }
+                } catch (error) {
+                    console.error('Create Deposit Error:', error);
+                    displayStatus(`Error creating deposit: ${error.response?.data?.error || error.message}`, 'error', 'depositStatusDisplay');
+                } finally {
+                    hideSpinner('createDepositSpinner');
                 }
-                row.appendChild(statusCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = item.name;
-                row.appendChild(nameCell);
-
-                const typeCell = document.createElement('td');
-                typeCell.textContent = item.type;
-                row.appendChild(typeCell);
-
-                const priceCell = document.createElement('td');
-                priceCell.textContent = item.price;
-                row.appendChild(priceCell);
-
-                const codeCell = document.createElement('td');
-                codeCell.textContent = item.code;
-                row.appendChild(codeCell);
-
-                const noteCell = document.createElement('td');
-                noteCell.textContent = item.note;
-                row.appendChild(noteCell);
-
-                tableBody.appendChild(row);
             });
         }
 
+
+        // --- Get Deposit Status ---
+        const getDepositStatusButton = document.getElementById('getDepositStatusButton');
+        if (getDepositStatusButton) {
+            getDepositStatusButton.addEventListener('click', async () => {
+                clearStatus('depositStatusDisplay');
+                showSpinner('getStatusSpinner');
+
+                const depositId = document.getElementById('depositId').value;
+
+                if (!depositId) {
+                    displayStatus('Please enter a Deposit ID.', 'error', 'depositStatusDisplay');
+                    hideSpinner('getStatusSpinner');
+                    return;
+                }
+
+                try {
+                    const response = await axios.get(`/api/deposit-status?id=${depositId}`);
+                    if (response.data && response.data.data) {
+                        displayStatus(`Status: ${response.data.data.status} - Message: ${response.data.data.message}`, 'success', 'depositStatusDisplay');
+                    } else {
+                        displayStatus('Failed to get deposit status.', 'error', 'depositStatusDisplay');
+                    }
+                } catch (error) {
+                    console.error('Get Deposit Status Error:', error);
+                    displayStatus(`Error getting deposit status: ${error.response?.data?.error || error.message}`, 'error', 'depositStatusDisplay');
+                } finally {
+                    hideSpinner('getStatusSpinner');
+                }
+            });
+        }
+
+
+        // --- Cancel Deposit ---
+        const cancelDepositButton = document.getElementById('cancelDepositButton');
+        if (cancelDepositButton) {
+            cancelDepositButton.addEventListener('click', async () => {
+                clearStatus('depositStatusDisplay');
+                showSpinner('cancelDepositSpinner');
+
+                const depositId = document.getElementById('depositId').value;
+
+                if (!depositId) {
+                    displayStatus('Please enter a Deposit ID.', 'error', 'depositStatusDisplay');
+                    hideSpinner('cancelDepositSpinner');
+                    return;
+                }
+
+                try {
+                    const response = await axios.get(`/api/cancel-deposit?id=${depositId}`);
+                    if (response.data && response.data.code === 200) {
+                        displayStatus('Deposit cancelled successfully.', 'success', 'depositStatusDisplay');
+                    } else {
+                        displayStatus('Failed to cancel deposit.', 'error', 'depositStatusDisplay');
+                    }
+                } catch (error) {
+                    console.error('Cancel Deposit Error:', error);
+                    displayStatus(`Error cancelling deposit: ${error.response?.data?.error || error.message}`, 'error', 'depositStatusDisplay');
+                } finally {
+                    hideSpinner('cancelDepositSpinner');
+                }
+            });
+        }
+
+
+
+        // --- Fetch and Populate Mobile Legends Prices ---
+        async function fetchMobileLegendsPrices() {
+            try {
+                const response = await axios.get('/api/mobile-legends-prices');
+                const prices = response.data;
+                const tableBody = document.querySelector('#pricesTable tbody');
+                if (tableBody) {
+                    tableBody.innerHTML = ''; // Clear existing data
+                    prices.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.item}</td>
+                            <td>${item.price}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching prices:', error);
+                // Optionally display an error message to the user
+            }
+        }
+
+        // --- Fetch and Populate Deposit Methods ---
         async function fetchDepositMethods() {
             try {
-                const response = await fetch('paymu-wanzofc.up.railway.app/api/deposit-methods');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const response = await axios.get('/api/deposit-methods');
+                const methods = response.data;
+                const methodSelect = document.getElementById('method');
+                const depositMethodsList = document.getElementById('depositMethodsList'); // For list display
+
+                if (methodSelect) {
+                    // Clear existing options, leaving the "Select a method" option
+                    while (methodSelect.options.length > 1) { // Keep the first option
+                        methodSelect.remove(1);
+                    }
+
+                    // Populate the select options
+                    methods.forEach(method => {
+                        const option = document.createElement('option');
+                        option.value = method.method;
+                        option.textContent = `${method.method} - ${method.name}`; // Display both method and name
+                        methodSelect.appendChild(option);
+                    });
                 }
-                const data = await response.json();
-                displayDepositMethods(data);
-                populateDepositMethodSelect(data);
+
+                if (depositMethodsList) {
+                    // Clear existing list items
+                    depositMethodsList.innerHTML = '';
+
+                    // Populate the list
+                    methods.forEach(method => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${method.method} - ${method.name}`;
+                        depositMethodsList.appendChild(listItem);
+                    });
+                }
+
             } catch (error) {
-                console.error('Fetch error (deposit):', error);
-                document.getElementById('error-message-deposit').textContent = 'Failed to load deposit methods.';
+                console.error('Error fetching deposit methods:', error);
+                // Optionally display an error message to the user
             }
         }
 
-        function displayDepositMethods(methods) {
-            const tableBody = document.getElementById('deposit-table-body');
-            tableBody.innerHTML = '';
 
-            methods.forEach(method => {
-                const row = document.createElement('tr');
-                const logoCell = document.createElement('td');
-                const logoImg = document.createElement('img');
-                logoImg.src = method.logo_image_url;
-                logoImg.alt = method.name;
-                logoImg.classList.add('logo-img');
-                logoCell.appendChild(logoImg);
-                row.appendChild(logoCell);
 
-                const metodeCell = document.createElement('td');
-                metodeCell.textContent = method.metode;
-                row.appendChild(metodeCell);
-
-                const nameCell = document.createElement('td');
-                nameCell.textContent = method.name;
-                row.appendChild(nameCell);
-
-                const typeCell = document.createElement('td');
-                typeCell.textContent = method.type;
-                row.appendChild(typeCell);
-
-                const minimumCell = document.createElement('td');
-                minimumCell.textContent = method.minimum;
-                row.appendChild(minimumCell);
-
-                const maximumCell = document.createElement('td');
-                maximumCell.textContent = method.maximum;
-                row.appendChild(maximumCell);
-
-                const feeCell = document.createElement('td');
-                feeCell.textContent = method.fee;
-                row.appendChild(feeCell);
-
-                const percentageFeeCell = document.createElement('td');
-                percentageFeeCell.textContent = method.percentage_fee;
-                row.appendChild(percentageFeeCell);
-
-                const statusCell = document.createElement('td');
-                statusCell.textContent = method.status;
-                if (method.status === 'active') {
-                    statusCell.classList.add('status-check');
-                } else {
-                    statusCell.classList.add('status-error');
-                }
-                row.appendChild(statusCell);
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        function populateDepositMethodSelect(methods) {
-            const methodSelect = document.getElementById('method');
-            methodSelect.innerHTML = '';
-
-            methods.forEach(method => {
-                const option = document.createElement('option');
-                option.value = method.metode;
-                option.textContent = method.name;
-                methodSelect.appendChild(option);
-            });
-        }
-
-        async function createDeposit() {
-            const reffId = document.getElementById('reff_id').value;
-            const method = document.getElementById('method').value;
-            const nominal = document.getElementById('nominal').value;
-            const phoneNumber = document.getElementById('phone_number').value;
-            const feeByCustomer = document.getElementById('fee_by_customer').value;
-
-            try {
-                const response = await fetch('paymu-wanzofc.up.railway.app/api/create-deposit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        reff_id: reffId,
-                        method: method,
-                        nominal: nominal,
-                        phone_number: phoneNumber,
-                        fee_by_customer: feeByCustomer
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById('create-deposit-message').textContent = `Deposit created successfully. Reff ID: ${data.reff_id}, QR Image URL: ${data.qr_image_url}`;
-                document.getElementById('create-deposit-error').textContent = '';
-                console.log('Deposit creation response:', data);
-
-            } catch (error) {
-                console.error('Create deposit error:', error);
-                document.getElementById('create-deposit-error').textContent = 'Failed to create deposit. Check the console for details.';
-                document.getElementById('create-deposit-message').textContent = '';
-            }
-        }
-
-        async function getDepositStatus() {
-            const depositId = document.getElementById('deposit_id').value;
-
-            try {
-                const response = await fetch(`paymu-wanzofc.up.railway.app/api/deposit-status?id=${depositId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                document.getElementById('deposit-status-message').textContent = `Status: ${data.data.status}, Reff ID: ${data.data.reff_id}`;
-                document.getElementById('deposit-status-error').textContent = '';
-                console.log('Deposit status response:', data);
-
-            } catch (error) {
-                console.error('Get deposit status error:', error);
-                document.getElementById('deposit-status-error').textContent = 'Failed to get deposit status. Check the console for details.';
-                document.getElementById('deposit-status-message').textContent = '';
-            }
-        }
-
-        async function cancelDeposit() {
-            const depositId = document.getElementById('cancel_deposit_id').value;
-
-            try {
-                const response = await fetch(`paymu-wanzofc.up.railway.app/api/cancel-deposit?id=${depositId}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-
-                document.getElementById('cancel-deposit-message').textContent = `Deposit cancelled successfully.`;
-                document.getElementById('cancel-deposit-error').textContent = '';
-                console.log('Cancel deposit response:', data);
-
-            } catch (error) {
-                console.error('Cancel deposit error:', error);
-                document.getElementById('cancel-deposit-error').textContent = 'Failed to cancel deposit. Check the console for details.';
-                document.getElementById('cancel-deposit-message').textContent = '';
-            }
-        }
-
+        // Initial data population on page load
         document.addEventListener('DOMContentLoaded', () => {
-            fetchPrices();
+            fetchMobileLegendsPrices();
             fetchDepositMethods();
         });
+
     </script>
 </body>
 </html>
