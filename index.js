@@ -1,135 +1,89 @@
-// server.js (Updated) - Backend (No changes needed in this file)
+// server.js
 const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const path = require('path'); // Import the 'path' module
-
+const http = require('http');
+const WebSocket = require('ws');
+const fs = require('fs');
+const crypto = require('crypto');
 const app = express();
-const port = 3000;
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const port = process.env.PORT || 3000;
+const TURN_ID_TOKEN = 'cbdf074d40fbee927a262f1cc537c0e1';
+const TURN_API_TOKEN = '1be8717db2849051b2a7e9ffb56a5cf5d2765349b9cd9598573a8ae934a2b946';
+let chatHistory = [];
+try {
+    const data = fs.readFileSync('chat.json');
+    chatHistory = JSON.parse(data);
+} catch (err) {
+    console.error("Tidak dapat memuat riwayat obrolan:", err); // Tangani kesalahan, misalnya jika file tidak ada
+}
 
-// Enable CORS
-app.use(cors());
 
-// Middleware to parse JSON request bodies
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
-const apiKey = 'sk-u9di3e6xidkwqe';
+function generateCredentials() {
+    // ... (sama seperti sebelumnya)
+}
 
-// Serve static files (index.html) from the current directory
-app.use(express.static(path.join(__dirname)));  // Serve static files (like index.html)
-
-// Endpoint for Mobile Legends Prices (Existing)
-app.get('/api/mobile-legends-prices', async (req, res) => {
-    try {
-        const apiUrl = `https://forestapi.web.id/api/h2h/price-list/games/mobile-legends?api_key=${apiKey}&profit_percent=0`;
-        const response = await axios.get(apiUrl);
-
-        if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data.data);
-        } else {
-            console.error('API Error (Prices):', response.data);
-            res.status(500).json({ error: 'Failed to fetch prices' });
-        }
-    } catch (error) {
-        console.error('Error fetching prices:', error);
-        res.status(500).json({ error: 'Internal server error (prices)' });
-    }
+app.get('/ice', (req, res) => {
+    // ... (sama seperti sebelumnya)
 });
 
-// Endpoint for Deposit Methods (Existing)
-app.get('/api/deposit-methods', async (req, res) => {
-    try {
-        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/methods?api_key=${apiKey}`;
-        const response = await axios.get(apiUrl);
-
-        if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data.data);
-        } else {
-            console.error('API Error (Deposit Methods):', response.data);
-            res.status(500).json({ error: 'Failed to fetch deposit methods' });
-        }
-    } catch (error) {
-        console.error('Error fetching deposit methods:', error);
-        res.status(500).json({ error: 'Internal server error (deposit methods)' });
-    }
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
 });
 
-// Endpoint to Create a Deposit (Existing)
-app.post('/api/create-deposit', async (req, res) => {
-    try {
-        const { reff_id, method, phone_number, fee_by_customer, nominal } = req.body;
+wss.on('connection', ws => {
+    console.log('Client connected');
 
-        if (!reff_id || !method || !nominal) {
-            return res.status(400).json({ error: 'Missing required parameters.' });
+
+    // Mengirim riwayat obrolan ke klien yang baru terhubung
+    ws.send(JSON.stringify({ type: 'history', messages: chatHistory }));
+
+
+    ws.on('message', message => {
+        try {
+            const msg = JSON.parse(message);
+
+            switch(msg.type) {
+                case 'message':
+                    const newMessage = {
+                        sender: msg.sender,
+                        text: msg.text,
+                        timestamp: Date.now()
+                    };
+                    chatHistory.push(newMessage);
+                    
+                    // Simpan riwayat obrolan ke file
+                    fs.writeFileSync('chat.json', JSON.stringify(chatHistory, null, 2));
+
+                    // Broadcast pesan ke semua klien
+                    wss.clients.forEach(client => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'message', message: newMessage }));
+                        }
+                    });
+                    break;
+
+                // Tambahkan case lain untuk tipe pesan lain (misalnya, "offer", "answer", "ice")
+
+                default:
+                    console.log('Unknown message type:', msg.type);
+
+            }
+
+        } catch (error) {
+            console.error("Gagal memproses pesan:", error);
         }
+    });
 
-        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/create?api_key=${apiKey}&reff_id=${reff_id}&method=${method}&phone_number=${phone_number || ''}&fee_by_customer=${fee_by_customer || false}&nominal=${nominal}`;
+    ws.on('close', () => {
+        console.log('Client disconnected');
+    });
 
-        const response = await axios.post(apiUrl);
-
-        if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data.data);
-        } else {
-            console.error('API Error (Create Deposit):', response.data);
-            res.status(500).json({ error: 'Failed to create deposit' });
-        }
-    } catch (error) {
-        console.error('Error creating deposit:', error);
-        res.status(500).json({ error: 'Internal server error (create deposit)' });
-    }
+    ws.on('error', error => {
+        console.error('WebSocket error:', error);
+    });
 });
 
-// Endpoint to Get Deposit Status (Existing)
-app.get('/api/deposit-status', async (req, res) => {
-    try {
-        const { id } = req.query;
 
-        if (!id) {
-            return res.status(400).json({ error: 'Missing required parameter: id' });
-        }
-
-        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/status?api_key=${apiKey}&id=${id}`;
-        const response = await axios.get(apiUrl);
-
-        if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data);
-        } else {
-            console.error('API Error (Deposit Status):', response.data);
-            res.status(500).json({ error: 'Failed to get deposit status' });
-        }
-    } catch (error) {
-        console.error('Error getting deposit status:', error);
-        res.status(500).json({ error: 'Internal server error (deposit status)' });
-    }
-});
-
-// Endpoint to Cancel Deposit (Existing)
-app.get('/api/cancel-deposit', async (req, res) => {
-    try {
-        const { id } = req.query;
-
-        if (!id) {
-            return res.status(400).json({ error: 'Missing required parameter: id' });
-        }
-
-        const apiUrl = `https://forestapi.web.id/api/h2h/deposit/cancel?api_key=${apiKey}&id=${id}`;
-        const response = await axios.get(apiUrl);
-
-        if (response.data.status === 'success' && response.data.code === 200) {
-            res.json(response.data);
-        } else {
-            console.error('API Error (Cancel Deposit):', response.data);
-            res.status(500).json({ error: 'Failed to cancel deposit' });
-        }
-    } catch (error) {
-        console.error('Error canceling deposit:', error);
-        res.status(500).json({ error: 'Internal server error (cancel deposit)' });
-    }
-});
-
-// Start the server
-app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-});
+server.listen(port, () => console.log(`Server listening on port ${port}`));
