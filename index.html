@@ -1,176 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App - Wanzofc</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <style>
-        /* ... (CSS styles – sama seperti jawaban sebelumnya) */
-    </style>
+  <meta charset="UTF-8">
+  <title>WANZOFC APP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1b1e2f, #23263a);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    .chat-wrapper {
+      width: 100%;
+      max-width: 600px;
+      height: 80vh;
+      background: #2c2f47;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .chat-header {
+      padding: 16px;
+      text-align: center;
+      background: #1f2233;
+      font-weight: 600;
+      font-size: 1.2rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #1d1f2d;
+    }
+
+    .message-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      background: #3a3e5a;
+      border-radius: 18px;
+      align-self: flex-start;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .message-bubble.me {
+      background: #00f0ff;
+      color: #000;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    .message-id {
+      font-size: 0.6rem;
+      margin-top: 4px;
+      opacity: 0.5;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #444;
+      padding: 12px;
+      background: #1f2233;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: #2c2f47;
+      color: #0ff;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #0ff;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    .chat-input button:hover {
+      background: #00e0e0;
+    }
+  </style>
 </head>
 <body>
-    <div id="header">
-        <h1>Chat App - Wanzofc</h1>
+  <div class="chat-wrapper">
+    <div class="chat-header">WANZOFC APP</div>
+    <div class="chat-messages" id="messages"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Ketik pesan...">
+      <button onclick="sendMessage()">Kirim</button>
     </div>
+  </div>
 
-    <div id="videoContainer">
-        <button id="callButton" class="videoButton"><i class="fas fa-phone"></i></button>
-        <button id="videoCallButton" class="videoButton"><i class="fas fa-video"></i></button>
-    </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
 
-    <div id="chat">
-        <div id="messageArea"></div>
-        <div id="inputArea">
-            <input type="text" id="messageInput" placeholder="Ketik pesan...">
-            <button id="sendMessage" class="button">Kirim</button>
-        </div>
+    function generateUUID() {
+      return crypto.randomUUID();
+    }
 
-    </div>
+    function sendMessage() {
+      const msg = input.value.trim();
+      if (msg !== '') {
+        const data = {
+          id: generateUUID(),
+          message: msg,
+          fromMe: true
+        };
+        appendMessage(data);
+        socket.emit('chat message', data);
+        input.value = '';
+      }
+    }
 
-    <video id="localVideo" autoplay muted playsinline></video>
-    <video id="remoteVideo" autoplay playsinline></video>
+    function appendMessage({ id, message, fromMe }) {
+      const div = document.createElement('div');
+      div.classList.add('message-bubble');
+      if (fromMe) div.classList.add('me');
+      div.innerHTML = `${message}<div class="message-id">${id}</div>`;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
 
-    <script>
-        const messageInput = document.getElementById('messageInput');
-        const sendMessageButton = document.getElementById('sendMessage');
-        const messageArea = document.getElementById('messageArea');
-        const callButton = document.getElementById('callButton');
-        const videoCallButton = document.getElementById('videoCallButton');
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
+    socket.on('chat message', function(data) {
+      data.fromMe = false;
+      appendMessage(data);
+    });
 
-        let ws, pc, localStream;
-        const configuration = null; // or add your STUN/TURN servers here
-
-
-        function start() {
-            ws = new WebSocket('ws://' + window.location.host);
-
-            ws.onopen = () => {
-                console.log('Connected to WebSocket server');
-            };
-
-            ws.onmessage = async (event) => {
-                const msg = JSON.parse(event.data);
-
-                switch (msg.type) {
-                    case 'history':
-                        msg.messages.forEach(message => displayMessage(message));
-                        break;
-                    case 'message':
-                        displayMessage(msg.message);
-                        break;
-                     case 'sdp': {
-
-                if (msg.data.type === 'offer') {
-                    if (!pc) {
-                        await createPeerConnection();
-                    }
-                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                ws.send(JSON.stringify({ type: 'sdp', sender: 'you', data: pc.localDescription }));
-                } else if (msg.data.type === 'answer') {
-                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
-                }
-                break;
-            }
-            case 'candidate': {
-                if (!pc) {
-                    await createPeerConnection();
-                }
-                if (msg.data) {
-                    try {
-                        await pc.addIceCandidate(new RTCIceCandidate(msg.data));
-                    } catch (e) {
-                        console.error('Error adding received ice candidate', e);
-                    }
-                }
-                break;
-            }
-
-
-                }
-            };
-
-            ws.onclose = () => {
-                console.log('Disconnected from WebSocket server');
-            };
-
-            ws.onerror = error => {
-                console.error('WebSocket error:', error);
-            };
-        }
-
-        function sendMessage() {
-            const message = messageInput.value;
-            if (message.trim() !== '') {
-                ws.send(JSON.stringify({ type: 'message', sender: 'You', text: message }));
-                messageInput.value = '';
-            }
-        }
-
-        function displayMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            if (message.sender === 'You') {
-                messageDiv.classList.add('sent');
-            }
-            messageDiv.innerHTML = `<strong>${message.sender}:</strong> ${message.text}`;
-            messageArea.appendChild(messageDiv);
-            messageArea.scrollTop = messageArea.scrollHeight;
-        }
-
-
-        async function createPeerConnection() {
-            try {
-                pc = new RTCPeerConnection(configuration);
-                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-                pc.onicecandidate = event => {
-                    if (event.candidate) {
-                        ws.send(JSON.stringify({ type: 'candidate', sender: 'you', data: event.candidate }));
-                    }
-                };
-                pc.ontrack = event => {
-                    remoteVideo.srcObject = event.streams[0];
-                };
-            } catch (error) {
-                console.error('Failed to create peer connection:', error)
-            }
-        }
-
-
-
-
-        sendMessageButton.onclick = sendMessage;
-
-        messageInput.addEventListener('keypress', event => {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        start();
-
-
-        async function startCall(isVideo) {
-            if (!localStream) {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
-                localVideo.srcObject = localStream;
-            }
-          
-            await createPeerConnection();
-
-          
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            ws.send(JSON.stringify({ type: 'sdp', sender: 'you', data: offer }));
-        }
-
-
-        callButton.onclick = () => startCall(false);
-        videoCallButton.onclick = () => startCall(true);
-    </script>
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
 </body>
 </html>
