@@ -1,4 +1,4 @@
-// server.js (Updated)
+// server.js (Updated) - Backend (No changes needed in this file)
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
