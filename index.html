@@ -1,154 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App - Wanzofc</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        /* Reset beberapa style default */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: sans-serif;
-            background: linear-gradient(135deg, #f06 0%, #ff0 100%); /* Gradien warna-warni */
-            color: white;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-
-        }
-
-
-        #header {
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparan */
-            padding: 10px;
-            text-align: center;
-            position: fixed;
-            width: 100%;
-            top: 0;
-
-            display: flex;
-            justify-content: center;
-            align-items: center; /* Vertikal align */
-
-        }
-
-
-        #header h1 {
-            font-size: 2em;
-            /* Styling lainnya untuk header */
-        }
-
-
-
-        #chat {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            margin-top: 70px;
-            overflow-y: scroll;
-
-        }
-
-
-        #messageArea {
-            width: 100%;
-            margin-bottom: 10px;
-            flex-grow: 1;
-            overflow-y: scroll;
-
-
-        }
-
-
-        .message {
-            background-color: rgba(255, 255, 255, 0.2); /* Latar belakang pesan */
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-
-
-        }
-
-        .message.sent {
-            text-align: right;
-        }
-
-        #inputArea {
-            display: flex;
-
-
-        }
-
-        #messageInput {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.4);
-
-        }
-
-        #sendMessage {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-
-        }
-
-
-        #videoContainer {
-
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            display: flex;
-
-
-
-        }
-
-
-        .videoButton {
-            padding: 10px;
-
-            margin-left: 5px; /* Jarak antar tombol */
-            border: none;
-            border-radius: 5px;
-            background-color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-
-
-
-        }
-
-        /* Styling FontAwesome icon */
-        .videoButton i {
-
-
-            font-size: 1.5em;
-
-        }
+        /* ... (CSS styles – sama seperti jawaban sebelumnya) */
     </style>
 </head>
-
 <body>
-
     <div id="header">
-
         <h1>Chat App - Wanzofc</h1>
-
     </div>
-
 
     <div id="videoContainer">
         <button id="callButton" class="videoButton"><i class="fas fa-phone"></i></button>
@@ -159,120 +23,154 @@
         <div id="messageArea"></div>
         <div id="inputArea">
             <input type="text" id="messageInput" placeholder="Ketik pesan...">
-            <button id="sendMessage">Kirim</button>
+            <button id="sendMessage" class="button">Kirim</button>
         </div>
+
     </div>
 
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
 
     <script>
-
         const messageInput = document.getElementById('messageInput');
         const sendMessageButton = document.getElementById('sendMessage');
         const messageArea = document.getElementById('messageArea');
-
         const callButton = document.getElementById('callButton');
         const videoCallButton = document.getElementById('videoCallButton');
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
 
-        let ws;
+        let ws, pc, localStream;
+        const configuration = null; // or add your STUN/TURN servers here
 
 
         function start() {
-            ws = new WebSocket('ws://' + window.location.host); // atau wss:// untuk secure WebSocket
-
-
+            ws = new WebSocket('ws://' + window.location.host);
 
             ws.onopen = () => {
                 console.log('Connected to WebSocket server');
             };
 
-            ws.onmessage = event => {
+            ws.onmessage = async (event) => {
                 const msg = JSON.parse(event.data);
 
                 switch (msg.type) {
                     case 'history':
                         msg.messages.forEach(message => displayMessage(message));
                         break;
-
                     case 'message':
                         displayMessage(msg.message);
                         break;
+                     case 'sdp': {
 
-                    // ... (handle other message types)
+                if (msg.data.type === 'offer') {
+                    if (!pc) {
+                        await createPeerConnection();
+                    }
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                ws.send(JSON.stringify({ type: 'sdp', sender: 'you', data: pc.localDescription }));
+                } else if (msg.data.type === 'answer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(msg.data));
                 }
+                break;
+            }
+            case 'candidate': {
+                if (!pc) {
+                    await createPeerConnection();
+                }
+                if (msg.data) {
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(msg.data));
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+                break;
+            }
 
+
+                }
             };
-
 
             ws.onclose = () => {
-
                 console.log('Disconnected from WebSocket server');
             };
-
-
 
             ws.onerror = error => {
                 console.error('WebSocket error:', error);
             };
-
-
-
-
-
         }
-
 
         function sendMessage() {
             const message = messageInput.value;
-            if (message.trim() !== '') { // Mengabaikan pesan kosong
+            if (message.trim() !== '') {
                 ws.send(JSON.stringify({ type: 'message', sender: 'You', text: message }));
                 messageInput.value = '';
             }
         }
 
-
         function displayMessage(message) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message');
-
             if (message.sender === 'You') {
                 messageDiv.classList.add('sent');
             }
-
-
             messageDiv.innerHTML = `<strong>${message.sender}:</strong> ${message.text}`;
             messageArea.appendChild(messageDiv);
-
-            // Scroll ke bawah secara otomatis
             messageArea.scrollTop = messageArea.scrollHeight;
-
-
         }
+
+
+        async function createPeerConnection() {
+            try {
+                pc = new RTCPeerConnection(configuration);
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+                pc.onicecandidate = event => {
+                    if (event.candidate) {
+                        ws.send(JSON.stringify({ type: 'candidate', sender: 'you', data: event.candidate }));
+                    }
+                };
+                pc.ontrack = event => {
+                    remoteVideo.srcObject = event.streams[0];
+                };
+            } catch (error) {
+                console.error('Failed to create peer connection:', error)
+            }
+        }
+
+
+
 
         sendMessageButton.onclick = sendMessage;
 
         messageInput.addEventListener('keypress', event => {
-
             if (event.key === 'Enter') {
                 sendMessage();
             }
-
-
         });
 
         start();
 
 
-        // Placeholder function for call functionality
-        callButton.onclick = () => {
-            alert("Call functionality not implemented yet.");
-        };
+        async function startCall(isVideo) {
+            if (!localStream) {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: isVideo, audio: true });
+                localVideo.srcObject = localStream;
+            }
+          
+            await createPeerConnection();
 
-        // Placeholder function for video call functionality
-        videoCallButton.onclick = () => {
-            alert("Video call functionality not implemented yet.");
-        };
+          
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            ws.send(JSON.stringify({ type: 'sdp', sender: 'you', data: offer }));
+        }
 
 
+        callButton.onclick = () => startCall(false);
+        videoCallButton.onclick = () => startCall(true);
     </script>
 </body>
 </html>
