@@ -1,50 +1,53 @@
-// server.js
-const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
-const mongoose = require('mongoose');
-const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const express = require('express');
+const { Server } = require('socket.io');
+const multer = require('multer');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+const chatFile = path.join(__dirname, 'chat.json');
+
+if (!fs.existsSync(chatFile)) fs.writeFileSync(chatFile, '[]');
+
+app.use('/socket.io', express.static(path.join(__dirname, 'node_modules/socket.io/client-dist')));
+
+app.get('/', (_, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/chat', (_, res) => {
+  const data = fs.readFileSync(chatFile, 'utf-8');
+  res.json(JSON.parse(data));
+});
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, '.'),
-  filename: (req, file, cb) => cb(null, 'avatar_' + uuidv4() + path.extname(file.originalname))
+  destination: (_, __, cb) => cb(null, __dirname),
+  filename: (_, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage });
-mongoose.connect('mongodb+srv://zanssxploit:pISqUYgJJDfnLW9b@cluster0.fgram.mongodb.net/?retryWrites=true&w=majority');
-const ChatSchema = new mongoose.Schema({
-  userId: String,
-  username: String,
-  avatar: String,
-  color: String,
-  message: String,
-  timestamp: { type: Date, default: Date.now }
-});
-const Chat = mongoose.model('Chat', ChatSchema);
-
-app.use(express.json());
-app.use('/avatar', express.static('.'));
-
-app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
-  res.json({ url: `/avatar/${req.file.filename}` });
+  res.json({ url: `/${req.file.filename}` });
 });
 
-io.on('connection', async (socket) => {
-  const history = await Chat.find().sort({ timestamp: 1 }).limit(100);
+app.use(express.static(__dirname)); // untuk akses avatar
+
+io.on('connection', (socket) => {
+  const history = JSON.parse(fs.readFileSync(chatFile, 'utf-8'));
   socket.emit('chat history', history);
 
-  socket.on('chat message', async (data) => {
-    const newChat = new Chat(data);
-    await newChat.save();
-    io.emit('chat message', newChat);
+  socket.on('chat message', (msg) => {
+    const messages = JSON.parse(fs.readFileSync(chatFile, 'utf-8'));
+    messages.push(msg);
+    fs.writeFileSync(chatFile, JSON.stringify(messages.slice(-100))); // batasi 100 chat terakhir
+    io.emit('chat message', msg);
   });
 });
 
-server.listen(3000, () => console.log('Server running on http://localhost:3000'));
+server.listen(3000, () => {
+  console.log('Server jalan di http://localhost:3000');
+});
