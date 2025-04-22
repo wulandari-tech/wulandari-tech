@@ -25,9 +25,9 @@
     .chat-container {
       flex: 1;
       overflow-y: auto;
-      padding: 2rem;
+      padding: 1rem;
       display: flex;
-      flex-direction: column;
+      flex-direction: column-reverse; /* Membalik urutan pesan */
       gap: 1rem;
       scrollbar-width: thin;
       scroll-behavior: smooth;
@@ -36,8 +36,9 @@
     .message {
       display: flex;
       align-items: flex-start;
-      gap: 0.4rem;
-      animation: fadeIn 0.4s ease;
+      gap: 0.5rem;
+      animation: fadeIn 0.3s ease;
+      align-self: flex-start;
     }
 
     .message .avatar {
@@ -62,13 +63,20 @@
       border-top: 1px solid #333;
       background: #111;
       align-items: center;
+      position: fixed; /* Menempelkan form di bagian bawah */
+      bottom: 0;       /* Menempel tepat di bawah */
+      left: 0;
+      right: 0;
+      transform: translateY(-10px); /* Angkat sedikit dari bawah */
+      margin: 0 auto; /* Tengah horizontal */
+      max-width: 800px; /* Batasi lebar form */
     }
 
     input {
-      flex: 3;
-      padding: 2rem 2rem;
-      border: ;
-      border-radius: 100px;
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 10px;
       background: #1e1e1e;
       color: #fff;
       font-size: 1rem;
@@ -182,7 +190,7 @@
       div.innerHTML = `
         <img src="${data.avatar}" class="avatar" />
         <div class="bubble" style="border-left: 4px solid ${data.color}">
-          <strong style="color: ${data.color}">${data.name}</strong><br>
+          <strong style="color: ${data.name}</strong><br>
           ${data.text}
         </div>`;
       messages.appendChild(div);
