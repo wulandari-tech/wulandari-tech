@@ -1,53 +1,65 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
-const { Server } = require('socket.io');
-const multer = require('multer');
-
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = socketIo(server);
 
-const chatFile = path.join(__dirname, 'chat.json');
+// In-memory chat history
+let chatHistory = [];
 
-if (!fs.existsSync(chatFile)) fs.writeFileSync(chatFile, '[]');
-
-app.use('/socket.io', express.static(path.join(__dirname, 'node_modules/socket.io/client-dist')));
-
+// Middleware untuk serve file statis
+app.use(express.static(path.join(__dirname, '')));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.get('/', (_, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
-
-app.get('/chat', (_, res) => {
-  const data = fs.readFileSync(chatFile, 'utf-8');
-  res.json(JSON.parse(data));
+// Endpoint untuk meng-upload avatar
+app.post('/upload-avatar', (req, res) => {
+  const file = req.files?.avatar;
+  if (file) {
+    const uploadPath = path.join(__dirname, 'uploads', file.name);
+    file.mv(uploadPath, (err) => {
+      if (err) return res.status(500).send({ message: 'Error uploading file' });
+      res.json({ url: `/uploads/${file.name}` });
+    });
+  } else {
+    res.status(400).send({ message: 'No file uploaded' });
+  }
 });
 
-const storage = multer.diskStorage({
-  destination: (_, __, cb) => cb(null, __dirname),
-  filename: (_, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
-
-app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
-  res.json({ url: `/${req.file.filename}` });
+// Endpoint untuk mengakses chat history
+app.get('/chat', (req, res) => {
+  res.json(chatHistory);
 });
 
-app.use(express.static(__dirname)); // untuk akses avatar
-
+// Socket.io untuk komunikasi realtime
 io.on('connection', (socket) => {
-  const history = JSON.parse(fs.readFileSync(chatFile, 'utf-8'));
-  socket.emit('chat history', history);
+  console.log('A user connected');
 
+  // Kirim chat history saat pengguna baru terhubung
+  socket.emit('chat history', chatHistory);
+
+  // Mendengarkan pesan dari pengguna
   socket.on('chat message', (msg) => {
-    const messages = JSON.parse(fs.readFileSync(chatFile, 'utf-8'));
-    messages.push(msg);
-    fs.writeFileSync(chatFile, JSON.stringify(messages.slice(-100))); // batasi 100 chat terakhir
+    // Menyimpan pesan baru ke dalam chat history
+    chatHistory.push(msg);
+
+    // Broadcast pesan ke semua pengguna
     io.emit('chat message', msg);
+  });
+
+  // Ketika pengguna terputus
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
   });
 });
 
-server.listen(3000, () => {
-  console.log('Server jalan di http://localhost:3000');
+// Set port dan start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server berjalan di port ${PORT}`);
 });
