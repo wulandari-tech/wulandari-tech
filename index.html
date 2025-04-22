@@ -16,7 +16,7 @@
       font-family: 'Orbitron', sans-serif;
     }
     body {
-      background: #000;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -116,6 +116,23 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    /* Tambahan untuk jam digital dan cuaca */
+    #clock-container {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+    }
+    #digital-clock {
+      font-size: 3rem;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    }
+    #weather-widget {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -131,6 +148,14 @@
   <input type="file" id="avatar-input" accept="image/*" style="display: none;" />
   <audio id="notif-sound" src="https://notificationsounds.com/storage/sounds/file-sounds-1157-pristine.mp3" preload="auto"></audio>
 
+  <!-- Jam Digital dan Widget Cuaca -->
+  <div id="clock-container">
+    <div id="digital-clock">00:00:00</div>
+    <div id="weather-widget">
+      <a class="weatherwidget-io" href="https://forecast7.com/en/n6d21e106d85/jakarta/" data-label_1="JAKARTA" data-label_2="WEATHER" data-theme="dark" >JAKARTA WEATHER</a>
+    </div>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -138,135 +163,100 @@
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
     const avatarBtn = document.getElementById('avatar-btn');
-    const avatarInput = document.getElementById('avatar-input');
-    const notifSound = document.getElementById('notif-sound');
+        const avatarInput = document.createElement('input');
+    avatarInput.type = 'file';
+    avatarInput.accept = 'image/*';
+    avatarInput.style.display = 'none';
+    document.body.appendChild(avatarInput);
 
-    let username = localStorage.getItem('username') || prompt("masukkan nama kamu:");
+    let username = localStorage.getItem('username') || prompt('Masukkan nama pengguna:');
     localStorage.setItem('username', username);
-    let avatarUrl = localStorage.getItem('avatarUrl') || 'https://i.ibb.co/TKpZYgX/user.png';
 
-    avatarBtn.onclick = () => avatarInput.click();
-    avatarInput.onchange = async () => {
-      const file = avatarInput.files[0];
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await fetch('/upload-avatar', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      avatarUrl = data.url;
-      localStorage.setItem('avatarUrl', avatarUrl);
-    };
+    let avatarUrl = localStorage.getItem('avatar') || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username);
+
+    avatarBtn.addEventListener('click', () => avatarInput.click());
+
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          avatarUrl = evt.target.result;
+          localStorage.setItem('avatar', avatarUrl);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (input.value.trim()) {
-        const msg = {
+      if (input.value) {
+        socket.emit('chat message', {
           name: username,
-          avatar: avatarUrl,
-          text: input.value,
-          color: stringToColor(username)
-        };
-        socket.emit('chat message', msg);
+          msg: input.value,
+          avatar: avatarUrl
+        });
         input.value = '';
       }
     });
 
-    socket.on('chat message', data => {
-      appendMessage(data);
-      if (data.name !== username) {
-        playNotification(data.text);
-      }
-    });
-
-    socket.on('chat history', (history) => {
-      history.forEach(appendMessage);
-      setTimeout(() => {
-        messages.scrollTop = messages.scrollHeight;
-      }, 100);
-    });
-
-    function appendMessage(data) {
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.innerHTML = `
+    socket.on('chat message', (data) => {
+      const item = document.createElement('div');
+      item.classList.add('message');
+      item.innerHTML = `
         <img src="${data.avatar}" class="avatar" />
-        <div class="bubble" style="border-left: 4px solid ${data.color}">
-          <strong style="color: ${data.color}">${data.name}</strong><br>
-          ${data.text}
-        </div>`;
-      messages.appendChild(div);
+        <div class="bubble">
+          <strong style="color:${generateColor(data.name)}">${data.name}:</strong><br>${data.msg}
+        </div>
+      `;
+      messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight;
-      gsap.fromTo(div, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 });
-    }
+      document.getElementById('notif-sound').play();
+    });
 
-    function stringToColor(str) {
+    function generateColor(name) {
       let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
       }
-      return '#' + ((hash >> 24) & 0xFF).toString(16).padStart(2, '0') +
-                   ((hash >> 16) & 0xFF).toString(16).padStart(2, '0') +
-                   ((hash >> 8) & 0xFF).toString(16).padStart(2, '0');
+      const c = (hash & 0x00FFFFFF)
+        .toString(16)
+        .toUpperCase();
+      return '#' + '00000'.substring(0, 6 - c.length) + c;
     }
 
-    function playNotification(text) {
-      notifSound.play();
-      if (Notification.permission === 'granted') {
-        new Notification("Pesan Baru", {
-          body: text,
-          icon: avatarUrl
-        });
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification("Pesan Baru", {
-              body: text,
-              icon: avatarUrl
-            });
-          }
-        });
-      }
+    // Update jam digital setiap detik
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('digital-clock').textContent = `${h}:${m}:${s}`;
     }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      Notification.requestPermission();
-    }
-
-    var typed = new Typed('#avatar-btn', {
-      strings: ['Avatar', 'Ganti Avatar'],
-      typeSpeed: 50,
-      backSpeed: 25,
-      loop: true
-    });
-
+    // Partikel background
     particlesJS('particles-js', {
-      particles: {
-        number: { value: 80, density: { enable: true, value_area: 800 } },
-        color: { value: "#00ffff" },
-        shape: { type: "circle" },
-        opacity: { value: 0.5 },
-        size: { value: 5, random: true },
-        line_linked: {
-          enable: true,
-          distance: 150,
-          color: "#00ffff",
-          opacity: 0.4,
-          width: 1
-        },
-        move: {
-          enable: true,
-          speed: 6,
-          direction: "none",
-          out_mode: "out"
-        }
-      },
-      interactivity: {
-        events: { onhover: { enable: true, mode: "repulse" } }
-      },
-      retina_detect: true
+      "particles": {
+        "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+        "color": { "value": "#00ffff" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.5 },
+        "size": { "value": 3 },
+        "line_linked": { "enable": true, "distance": 150, "color": "#00ffff", "opacity": 0.4, "width": 1 },
+        "move": { "enable": true, "speed": 2 }
+      }
     });
+
+    // Weather Widget
+    !function(d,s,id){
+      var js,fjs=d.getElementsByTagName(s)[0];
+      if(!d.getElementById(id)){
+        js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';
+        fjs.parentNode.insertBefore(js,fjs);
+      }
+    }(document,'script','weatherwidget-io-js');
   </script>
 </body>
 </html>
