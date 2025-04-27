@@ -6,7 +6,7 @@
   <title>WanzOfc Hunter Demo</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
-    /* (CSS sama seperti sebelumnya) */
+    /* (CSS sama seperti sebelumnya, beberapa dimodifikasi) */
     * {
       margin: 0;
       padding: 0;
@@ -41,13 +41,14 @@
       color: #ccc;
     }
     button {
-      padding: 10px 20px;
+      padding: 8px 16px; /* Ukuran tombol lebih kecil */
       border: none;
       background-color: #4f46e5;
       color: white;
-      border-radius: 8px;
+      border-radius: 5px; /* Radius lebih kecil */
       cursor: pointer;
       transition: background-color 0.3s ease;
+      font-size: 0.9rem; /* Font size lebih kecil */
     }
     button:hover {
       background-color: #4338ca;
@@ -68,20 +69,23 @@
     }
     .copy-input {
       flex-grow: 1;
-      padding: 8px;
+      padding: 6px;  /* Ukuran padding lebih kecil */
       border-radius: 5px;
       border: 1px solid #ccc;
       color: #333;
+      font-size: 0.8rem; /* Ukuran font lebih kecil */
+      width: 150px; /* Lebar input lebih kecil */
     }
     .copy-button {
       background-color: #6c757d;
       color: white;
       border: none;
-      padding: 8px 12px;
+      padding: 6px 10px; /* Ukuran padding lebih kecil */
       border-radius: 5px;
       cursor: pointer;
       margin-left: 8px;
       transition: background-color 0.3s ease;
+      font-size: 0.8rem; /* Ukuran font lebih kecil */
     }
     .copy-button:hover {
       background-color: #5a6268;
@@ -96,7 +100,7 @@
     <p>Website ini dibuat untuk mendemokan payload WanzOfc Hunter.</p>
 
     <div class="copy-container">
-      <input type="text" id="textToCopy" class="copy-input" value="Teks yang akan disalin">
+      <input type="text" id="textToCopy" class="copy-input" value="Teks yang akan disalin" >
       <button class="copy-button" onclick="copyText()"><i class="fas fa-copy"></i> Salin</button>
     </div>
 
