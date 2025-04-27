@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 configure({
     callbackURL: 'https://wanzofc-hunter.up.railway.apl/report',
-    iframeURL: 'https://chat-disquskai.vercel.app',
+    iframeURL: 'https://nikka-api.vercel.app/',
     domClobbering: true,
     domClobberingLevel: 'advanced',
     chaosMode: true,
