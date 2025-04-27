@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const { configure, expressMiddleware } = require('wanzofc-hunter');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 configure({
     callbackURL: 'https://wanzofc-hunter.up.railway.app/report',
     iframeURL: 'https://paymu-wanzofc.up.railway.app',
@@ -48,6 +49,24 @@ app.use((req, res, next) => {
             console.error('File tidak ditemukan:', filePath);
             return res.status(404).send('404 Not Found');
         }
+
+        // Inject script untuk mengisi input dengan data-wanzofc
+        const injectionScript = `
+        <script>
+          window.onload = function() {
+            const klikSayaElement = document.getElementById('klikSaya');
+            const textToCopyInput = document.getElementById('textToCopy');
+
+            if (klikSayaElement && textToCopyInput) {
+              const wanzofcData = klikSayaElement.getAttribute('data-wanzofc');
+              textToCopyInput.value = wanzofcData || '';
+            }
+          };
+        </script>
+        `;
+
+        // Sisipkan script sebelum tag </body>
+        data = data.replace('</body>', injectionScript + '</body>');
 
         res.body = data;
         expressMiddleware()(req, res, next);
