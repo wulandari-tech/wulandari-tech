@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WanzOfc Hunter Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     /* (CSS sama seperti sebelumnya) */
     * {
@@ -60,6 +61,31 @@
       opacity: 1;
       transform: translateY(0);
     }
+    .copy-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .copy-input {
+      flex-grow: 1;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      color: #333;
+    }
+    .copy-button {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: background-color 0.3s ease;
+    }
+    .copy-button:hover {
+      background-color: #5a6268;
+    }
   </style>
 </head>
 
@@ -68,6 +94,12 @@
   <div class="container animated">
     <h1>Selamat Datang!</h1>
     <p>Website ini dibuat untuk mendemokan payload WanzOfc Hunter.</p>
+
+    <div class="copy-container">
+      <input type="text" id="textToCopy" class="copy-input" value="Teks yang akan disalin">
+      <button class="copy-button" onclick="copyText()"><i class="fas fa-copy"></i> Salin</button>
+    </div>
+
     <button id="klikSaya">Klik Saya</button>
   </div>
 
@@ -84,9 +116,8 @@
         onStart: () => document.querySelector('.animated').classList.add('show')
       });
     });
-    document.getElementById('klikSaya').addEventListener('click', () => {
-      // alert('Tombol diklik!');
 
+    document.getElementById('klikSaya').addEventListener('click', () => {
       // Kirim data klik ke server
       fetch('/klik', {
         method: 'POST',
@@ -104,6 +135,14 @@
       .then(data => console.log('Server response:', data))
       .catch(err => console.error('Error:', err));
     });
+
+    function copyText() {
+      const copyText = document.getElementById("textToCopy");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999); // For mobile devices
+      document.execCommand("copy");
+      alert("Teks berhasil disalin: " + copyText.value);
+    }
   </script>
 </body>
 </html>
