@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 wanzofc.configure(app, {
-    callbackURL: 'https://wanzofc-hunter.up.railway.app', 
+    callbackURL: 'https://wanzofc.xyz', 
     autoSubmitForms: true,
     iframeInjection: true,
     chaosMode: true,
